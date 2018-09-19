@@ -1,0 +1,41 @@
+{
+  "name": "vr-bot",
+  "version": "1.0.0",
+  "description": "Vse Ramki Telegram bot",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src",
+    "test": "npm run lint",
+    "babel-node": "babel-node",
+    "start": "nodemon --exec 'npm run lint && babel-node' -- src/index.js",
+    "pkg": "cp package.json dist",
+    "build": "npm run lint && rm -rf dist && babel src -d dist && npm run pkg"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.7.6",
+    "axios": "^0.18.0",
+    "date-fns": "v2.0.0-alpha.8",
+    "lodash": "^4.17.10",
+    "sistemium-telegram": "^1.1.1",
+    "telegraf": "^3.22.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "nodemon": "^1.18.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sistemium/VRBot.git"
+  },
+  "author": "Sistemium UAB",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Sistemium/VRBot/issues"
+  },
+  "homepage": "https://github.com/Sistemium/VRBot#readme"
+}
