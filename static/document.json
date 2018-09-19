@@ -1,0 +1,25 @@
+{
+  "message_id": 3,
+  "from": {
+    "id": 543541652,
+    "is_bot": false,
+    "first_name": "Alexander",
+    "last_name": "Levin",
+    "username": "aliovin",
+    "language_code": "en-LT"
+  },
+  "chat": {
+    "id": 543541652,
+    "first_name": "Alexander",
+    "last_name": "Levin",
+    "username": "aliovin",
+    "type": "private"
+  },
+  "date": 1537360341,
+  "document": {
+    "file_name": "Таблица рамок на сайт.xls",
+    "mime_type": "application/x-msexcel",
+    "file_id": "BQADBAADWQQAAjcFEFFsUjFSYnZzwgI",
+    "file_size": 983552
+  }
+}
