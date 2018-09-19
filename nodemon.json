@@ -1,0 +1,15 @@
+{
+  "env": {
+    "DEBUG": "stm:*",
+    "PHRASE_NOT_IMPLEMENTED": "Я пока не понимаю такие команды",
+    "REDIS_DB": 7,
+    "BOT_USER_NAME": "VseRamkiBot",
+    "DEBUG_NAMESPACE": "stm:bot",
+    "ERROR_NAMESPACE": "stm:bot:error",
+    "API_URL": "https://api.sistemium.com/v4d/vr",
+    "GROUP_CHAT_ID": "",
+    "CREATE_NEWS": "",
+    "NOTIFY_HOUR_MIN": 8,
+    "NOTIFY_HOUR_MAX": 20
+  }
+}
