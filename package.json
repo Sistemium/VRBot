@@ -12,6 +12,7 @@
     "build": "npm run lint && rm -rf dist && babel src -d dist && npm run pkg"
   },
   "dependencies": {
+    "async": "^2.6.1",
     "aws-sdk": "^2.7.6",
     "axios": "^0.18.0",
     "date-fns": "v2.0.0-alpha.8",
