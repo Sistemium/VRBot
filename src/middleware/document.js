@@ -6,6 +6,7 @@ import trim from 'lodash/trim';
 import map from 'lodash/map';
 import filter from 'lodash/filter';
 import importFrames from '../config/importFrames';
+import { saveMany } from '../services/redisDB';
 
 const { debug } = log('document');
 
@@ -38,10 +39,14 @@ export async function onGetFile(ctx) {
 
   debug('onGetFile', fileId);
 
+  await ctx.replyWithChatAction('typing');
+
   const url = await bot.telegram.getFileLink(fileId);
   const xls = await getFile(url);
 
   const data = parseFramesFile(xls);
+
+  await saveMany('frames', data);
 
   await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> строк`);
   await ctx.replyWithHTML(`<pre>${JSON.stringify(data[0], null, 2)}</pre>`);
@@ -59,10 +64,7 @@ async function getFile(url) {
     },
   });
 
-  // debug(response.data);
   return xlsx.parse(response.data, { type: 'buffer' });
-
-  // return xlsx.parse(response, { type: 'buffer' });
 
 }
 
