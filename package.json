@@ -16,6 +16,7 @@
     "axios": "^0.18.0",
     "date-fns": "v2.0.0-alpha.8",
     "lodash": "^4.17.10",
+    "node-xlsx": "^0.12.1",
     "sistemium-telegram": "^1.1.1",
     "telegraf": "^3.22.2"
   },
