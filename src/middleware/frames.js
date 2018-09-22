@@ -2,10 +2,12 @@ import log from 'sistemium-telegram/services/log';
 import escapeRegExp from 'lodash/escapeRegExp';
 import filter from 'lodash/filter';
 
-import { findAll } from '../services/redisDB';
+import { findAll, find } from '../services/redisDB';
 import { countableState } from '../services/lang';
 
-const { debug } = log('message');
+const { debug } = log('frames');
+
+const FRAMES_KEY = 'frames';
 
 /**
  * Displays a frame info
@@ -15,9 +17,20 @@ const { debug } = log('message');
 
 export async function showFrame(ctx) {
 
-  const { message } = ctx;
+  const { match } = ctx;
+  const [command, frameId] = match;
 
-  debug('onDocument', JSON.stringify(message));
+  debug(command, frameId);
+
+  const frame = await find(FRAMES_KEY, frameId);
+
+  if (!frame) {
+    return;
+  }
+
+  const reply = [displayFrame(frame)];
+
+  await ctx.replyWithHTML(reply.join('\n'));
 
 }
 
@@ -29,7 +42,7 @@ export function displayFrame({ id, name }) {
 
 export async function searchFrames(text) {
 
-  const frames = await findAll('frames');
+  const frames = await findAll(FRAMES_KEY);
 
   const re = new RegExp(escapeRegExp(text), 'i');
   const codeRe = new RegExp(`^${escapeRegExp(text)}`, 'i');

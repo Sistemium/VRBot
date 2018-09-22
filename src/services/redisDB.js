@@ -7,6 +7,11 @@ export async function findAll(hashName) {
     .then(res => map(res, (data, id) => ({ id, ...JSON.parse(data) })));
 }
 
+export async function find(hashName, id) {
+  return redis.hgetAsync(hashName, id)
+    .then(res => ({ id, ...JSON.parse(res) }));
+}
+
 export async function save(hashName, id, data) {
   return redis.hsetAsync(hashName, id, JSON.stringify(data))
     .then(() => ({ ...data, id }));
