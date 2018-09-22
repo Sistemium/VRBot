@@ -1,10 +1,6 @@
 import log from 'sistemium-telegram/services/log';
-import filter from 'lodash/filter';
-import escapeRegExp from 'lodash/escapeRegExp';
 import sortBy from 'lodash/sortBy';
-
-import { findAll } from '../services/redisDB';
-import { countableState } from '../services/lang';
+import { displayFrame, frameCount, searchFrames } from './frames';
 
 const { debug } = log('message');
 
@@ -47,37 +43,5 @@ export default async function (ctx) {
   }
 
   await ctx.reply(reply.join('\n'));
-
-}
-
-function displayFrame({ id, name }) {
-  return `/f_${id} ${name}`;
-}
-
-
-async function searchFrames(text) {
-
-  const frames = await findAll('frames');
-
-  const re = new RegExp(escapeRegExp(text), 'i');
-  const codeRe = new RegExp(`^${escapeRegExp(text)}`, 'i');
-
-  return filter(frames, searcher);
-
-  function searcher({ name, article, id }) {
-    return codeRe.test(id) || codeRe.test(article) || re.test(name);
-  }
-
-}
-
-const frameWords = {
-  w1: 'рамку',
-  w24: 'рамки',
-  w50: 'рамок',
-};
-
-function frameCount(count) {
-
-  return frameWords[countableState(count)];
 
 }
