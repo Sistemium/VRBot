@@ -19,13 +19,19 @@ export const FRAMES_KEY = 'frames';
 export async function showFrame(ctx) {
 
   const { match } = ctx;
-  const [command, frameId] = match;
+  const [command, frameId, format] = match;
 
-  debug(command, frameId);
+  debug(command, frameId, format);
 
   const frame = await find(FRAMES_KEY, frameId);
 
   if (!frame) {
+    await ctx.replyWithHTML(`Не нашел товара с кодом <code>${frameId}</code>`);
+    return;
+  }
+
+  if (format === 'plain') {
+    await ctx.reply(`${JSON.stringify(frame, null, 2)}`);
     return;
   }
 
@@ -77,9 +83,9 @@ export async function searchFrames(text) {
 }
 
 const frameWords = {
-  w1: 'рамку',
-  w24: 'рамки',
-  w50: 'рамок',
+  w1: 'товар',
+  w24: 'товара',
+  w50: 'товаров',
 };
 
 export function frameCount(count) {

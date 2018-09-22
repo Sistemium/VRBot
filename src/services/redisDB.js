@@ -9,7 +9,7 @@ export async function findAll(hashName) {
 
 export async function find(hashName, id) {
   return redis.hgetAsync(hashName, id)
-    .then(res => ({ id, ...JSON.parse(res) }));
+    .then(res => res && ({ id, ...JSON.parse(res) }));
 }
 
 export async function save(hashName, id, data) {

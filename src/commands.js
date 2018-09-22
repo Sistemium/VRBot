@@ -15,6 +15,6 @@ bot.command('start', onStart);
 bot.on('document', onDocument);
 bot.command('getFile', onGetFile);
 
-bot.hears(/^\/f_([x]?\d+)/, showFrame);
+bot.hears(/^\/f_([x]?\d+)[ ]?([a-z]+)?/, showFrame);
 
 bot.on('message', onMessage);

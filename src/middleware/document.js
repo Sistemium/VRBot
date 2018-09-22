@@ -19,9 +19,13 @@ const { debug } = log('document');
 
 export async function onDocument(ctx) {
 
-  const { message } = ctx;
+  const { message: { document: { file_id: fileId, file_name: name } } } = ctx;
 
-  debug('onDocument', JSON.stringify(message));
+  debug('onDocument', fileId);
+
+  await ctx.replyWithHTML(`Получил файл <b>${name}</b>, попробую его изучить!`);
+
+  await importFramesFromFile(ctx, fileId);
 
 }
 
@@ -40,6 +44,12 @@ export async function onGetFile(ctx) {
 
   debug('onGetFile', fileId);
 
+  await importFramesFromFile(ctx, fileId);
+
+}
+
+async function importFramesFromFile(ctx, fileId) {
+
   await ctx.replyWithChatAction('typing');
 
   const url = await bot.telegram.getFileLink(fileId);
@@ -49,8 +59,7 @@ export async function onGetFile(ctx) {
 
   await saveMany(FRAMES_KEY, data);
 
-  await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> строк`);
-  await ctx.replyWithHTML(`<pre>${JSON.stringify(data[0], null, 2)}</pre>`);
+  await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> записей`);
 
 }
 
@@ -92,7 +101,7 @@ function parseFramesFile(xls) {
 
     columns.forEach(({ name, idx, type }) => {
       const value = row[idx];
-      res[name] = type ? value : trim(value);
+      res[name] = type ? value : trim(value).replace(/<>/, '');
     });
 
     return res;
