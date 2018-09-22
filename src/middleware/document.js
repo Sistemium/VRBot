@@ -7,6 +7,7 @@ import map from 'lodash/map';
 import filter from 'lodash/filter';
 import importFrames from '../config/importFrames';
 import { saveMany } from '../services/redisDB';
+import { FRAMES_KEY } from './frames';
 
 const { debug } = log('document');
 
@@ -46,7 +47,7 @@ export async function onGetFile(ctx) {
 
   const data = parseFramesFile(xls);
 
-  await saveMany('frames', data);
+  await saveMany(FRAMES_KEY, data);
 
   await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> строк`);
   await ctx.replyWithHTML(`<pre>${JSON.stringify(data[0], null, 2)}</pre>`);

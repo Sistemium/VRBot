@@ -2,12 +2,13 @@ import log from 'sistemium-telegram/services/log';
 import escapeRegExp from 'lodash/escapeRegExp';
 import filter from 'lodash/filter';
 
+import importFrames from '../config/importFrames';
 import { findAll, find } from '../services/redisDB';
 import { countableState } from '../services/lang';
 
 const { debug } = log('frames');
 
-const FRAMES_KEY = 'frames';
+export const FRAMES_KEY = 'frames';
 
 /**
  * Displays a frame info
@@ -28,12 +29,32 @@ export async function showFrame(ctx) {
     return;
   }
 
-  const reply = [displayFrame(frame)];
+  const reply = frameView(frame);
 
   await ctx.replyWithHTML(reply.join('\n'));
 
 }
 
+function frameView(frame) {
+
+  const res = importFrames.map(({ title, name }) => {
+
+    if (name === 'name') {
+      return false;
+    }
+
+    const value = frame[name];
+
+    return value && `${title}: <code>${value}</code>`;
+
+  });
+
+  return [
+    `<b>${frame.name}</b>\n`,
+    ...filter(res),
+  ];
+
+}
 
 export function displayFrame({ id, name }) {
   return `/f_${id} ${name}`;
