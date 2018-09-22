@@ -3,7 +3,7 @@ import log from 'sistemium-telegram/services/log';
 
 import onStart from './middleware/start';
 import onMessage from './middleware/message';
-import onDocument, { onGetFile } from './middleware/document';
+import { onDocument, onGetFile } from './middleware/document';
 
 const { debug } = log('commands');
 

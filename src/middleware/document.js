@@ -16,7 +16,7 @@ const { debug } = log('document');
  * @returns {Promise<void>}
  */
 
-export default async function (ctx) {
+export async function onDocument(ctx) {
 
   const { message } = ctx;
 
