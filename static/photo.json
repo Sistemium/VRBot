@@ -1,0 +1,45 @@
+{
+  "message_id": 338,
+  "from": {
+    "id": 543541652,
+    "is_bot": false,
+    "first_name": "Alexander",
+    "last_name": "Levin",
+    "username": "aliovin",
+    "language_code": "en-LT"
+  },
+  "chat": {
+    "id": 543541652,
+    "first_name": "Alexander",
+    "last_name": "Levin",
+    "username": "aliovin",
+    "type": "private"
+  },
+  "date": 1537630034,
+  "photo": [
+    {
+      "file_id": "AgADBAADoK4xG1dfOFFp2Elxnso7DLInoBoABCBdrcsnAqP9HOcCAAEC",
+      "file_size": 1042,
+      "width": 60,
+      "height": 90
+    },
+    {
+      "file_id": "AgADBAADoK4xG1dfOFFp2Elxnso7DLInoBoABMLjsvniBvP5HecCAAEC",
+      "file_size": 12593,
+      "width": 213,
+      "height": 320
+    },
+    {
+      "file_id": "AgADBAADoK4xG1dfOFFp2Elxnso7DLInoBoABDVN1FXXkPlbHucCAAEC",
+      "file_size": 64419,
+      "width": 533,
+      "height": 800
+    },
+    {
+      "file_id": "AgADBAADoK4xG1dfOFFp2Elxnso7DLInoBoABDTVGtMFmyvMH-cCAAEC",
+      "file_size": 157841,
+      "width": 853,
+      "height": 1280
+    }
+  ]
+}

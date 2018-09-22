@@ -10,6 +10,8 @@ const { debug } = log('frames');
 
 export const FRAMES_KEY = 'frames';
 
+export const SHOW_ARTICLE_COMMAND = /^\/a_([x]?\d+)[ ]?([a-z]+)?/;
+
 /**
  * Displays a frame info
  * @param {ContextMessageUpdate} ctx
@@ -63,7 +65,7 @@ function frameView(frame) {
 }
 
 export function displayFrame({ id, name }) {
-  return `/f_${id} ${name}`;
+  return `• /a_${id} ${name}`;
 }
 
 

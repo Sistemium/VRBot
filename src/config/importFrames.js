@@ -1,5 +1,6 @@
 export default [
   { title: 'Код', name: 'id' },
+  { title: 'Родитель', name: 'parent' },
   { title: 'Наименование', name: 'name' },
   { title: 'Артикул', name: 'article' },
   { title: 'Размер', name: 'size' },

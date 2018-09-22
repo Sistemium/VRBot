@@ -28,7 +28,7 @@ export default async function (ctx) {
   const { length } = matching;
 
   if (!length) {
-    await ctx.reply('Не нашел подходящих рамок');
+    await ctx.reply('Не нашел подходящих товаров');
     return;
   }
 

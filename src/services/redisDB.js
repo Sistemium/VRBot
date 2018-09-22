@@ -1,40 +1,29 @@
 import * as redis from 'sistemium-telegram/services/redis';
 import map from 'lodash/map';
-import series from 'async/series';
+import eachSeries from 'async/eachSeries';
+
+export const { getId } = redis;
 
 export async function findAll(hashName) {
-  return redis.hgetallAsync(hashName)
-    .then(res => map(res, (data, id) => ({ id, ...JSON.parse(data) })));
+  const res = await redis.hgetallAsync(hashName);
+  return res && map(res, JSON.parse);
 }
 
 export async function find(hashName, id) {
-  return redis.hgetAsync(hashName, id)
-    .then(res => res && ({ id, ...JSON.parse(res) }));
+  const res = await redis.hgetAsync(hashName, id);
+  return res && JSON.parse(res);
 }
 
 export async function save(hashName, id, data) {
-  return redis.hsetAsync(hashName, id, JSON.stringify(data))
-    .then(() => ({ ...data, id }));
+  const record = { ...data, id, ts: now() };
+  await redis.hsetAsync(hashName, id, JSON.stringify(record));
+  return record;
 }
 
 export function saveMany(hashName, data) {
+  return eachSeries(data, async item => save(hashName, item.id, item));
+}
 
-  return new Promise((resolve, reject) => {
-
-    const tasks = data.map(item => done => save(hashName, item.id, item)
-      .then(res => done(null, res))
-      .catch(done));
-
-    series(tasks, (err, res) => {
-
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res);
-      }
-
-    });
-
-  });
-
+function now() {
+  return new Date().toISOString();
 }

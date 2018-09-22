@@ -3,8 +3,9 @@ import log from 'sistemium-telegram/services/log';
 
 import onStart from './middleware/start';
 import onMessage from './middleware/message';
-import { onDocument, onGetFile } from './middleware/document';
-import { showFrame } from './middleware/frames';
+import { onPhoto, listPhotos } from './middleware/photo';
+import { onDocument, onGetFile, listFiles } from './middleware/document';
+import * as frames from './middleware/frames';
 
 const { debug } = log('commands');
 
@@ -12,9 +13,13 @@ debug('configuring commands');
 
 bot.command('start', onStart);
 
-bot.on('document', onDocument);
+bot.command('files', listFiles);
 bot.command('getFile', onGetFile);
 
-bot.hears(/^\/f_([x]?\d+)[ ]?([a-z]+)?/, showFrame);
+bot.command('photos', listPhotos);
 
+bot.hears(frames.SHOW_ARTICLE_COMMAND, frames.showFrame);
+
+bot.on('document', onDocument);
+bot.on('photo', onPhoto);
 bot.on('message', onMessage);
