@@ -2,7 +2,7 @@ import * as redis from 'sistemium-telegram/services/redis';
 import map from 'lodash/map';
 import series from 'async/series';
 
-export async function getAll(hashName) {
+export async function findAll(hashName) {
   return redis.hgetallAsync(hashName)
     .then(res => map(res, (data, id) => ({ id, ...JSON.parse(data) })));
 }
