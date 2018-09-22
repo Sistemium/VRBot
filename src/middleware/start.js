@@ -8,7 +8,13 @@ import trim from 'lodash/trim';
 
 export default async function (ctx) {
 
-  await ctx.replyWithHTML(`Здравствуй, <b>${name(ctx.from)}</b>!`);
+  const reply = [
+    `Здравствуй, <b>${name(ctx.from)}</b>!`,
+    '\nЯ бот - компьютерная программа-помощник для пользователей сайта всерамки.рф.',
+    '\nТы можешь мне написать мне что-то, и я поищу подходящие рамки и багеты.',
+  ];
+
+  await ctx.replyWithHTML(reply.join('\n'));
 
 }
 
