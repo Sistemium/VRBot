@@ -47,7 +47,26 @@ export async function showFrame(ctx) {
 
   await ctx.replyWithHTML(reply.join('\n'));
 
+  const pictures = await redis.findAll(PICTURES_KEY) || [];
+
+  const matching = filter(pictures, matchesArticle);
+
+  const replyPictures = matching.map(async ({ images, article }) => {
+    await ctx.replyWithPhoto(images[0].file_id, { caption: article });
+  });
+
+  await Promise.all(replyPictures);
+
+  if (!matching.length) {
+    await ctx.reply('Подходящих картинок не нашел');
+  }
+
+  function matchesArticle({ article }) {
+    return article === frame.article;
+  }
+
 }
+
 
 function frameView(frame) {
 
@@ -160,13 +179,13 @@ export async function importImageFile(ctx, file) {
     },
   });
 
-  const msg = await bot.telegram.sendPhoto(ctx.message.chat.id, { source }, { caption: article });
+  const msg = await bot.telegram.sendPhoto(ctx.message.chat.id, { source });
 
   data.images = msg.photo;
 
   const picture = await redis.save(PICTURES_KEY, id, data);
 
-  await ctx.reply(JSON.stringify(picture, null, 2));
+  await ctx.replyWithHTML(`Запомнил картинку /p_${picture.refId} с артикулом <b>${article}</b>`);
 
 }
 
