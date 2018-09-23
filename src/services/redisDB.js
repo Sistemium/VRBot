@@ -14,14 +14,43 @@ export async function find(hashName, id) {
   return res && JSON.parse(res);
 }
 
+export async function findByRefId(hashName, refId) {
+  const id = await redis.hgetAsync(refKey(hashName), refId);
+  const res = await redis.hgetAsync(hashName, id);
+  return res && JSON.parse(res);
+}
+
 export async function save(hashName, id, data) {
-  const record = { ...data, id, ts: now() };
+
+  const refId = data.refId || await getId(hashName);
+
+  const record = {
+    refId,
+    ...data,
+    id,
+    ts: now(),
+  };
+
   await redis.hsetAsync(hashName, id, JSON.stringify(record));
+
+  if (!data.refId) {
+    await redis.hsetAsync(refKey(hashName), refId, id);
+  }
+
   return record;
+
 }
 
 export function saveMany(hashName, data) {
   return eachSeries(data, async item => save(hashName, item.id, item));
+}
+
+/*
+Private
+ */
+
+function refKey(hashName) {
+  return `${hashName}_refId`;
 }
 
 function now() {

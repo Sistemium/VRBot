@@ -3,12 +3,9 @@ import bot from 'sistemium-telegram/services/bot';
 
 import axios from 'axios';
 import xlsx from 'node-xlsx';
-import trim from 'lodash/trim';
 import map from 'lodash/map';
-import filter from 'lodash/filter';
-import importFrames from '../config/importFrames';
 import * as db from '../services/redisDB';
-import { FRAMES_KEY } from './frames';
+import { FRAMES_KEY, parseFramesFile } from './frames';
 
 const FILES_KEY = 'files';
 
@@ -28,17 +25,26 @@ export async function onDocument(ctx) {
   debug('onDocument', fileId);
 
   await ctx.replyWithHTML(`Получил файл <b>${name}</b>, попробую его изучить!`);
+  const file = await db.save(FILES_KEY, fileId, document);
 
   switch (mime) {
     case 'application/x-msexcel':
       await importFramesFromFile(ctx, fileId);
       break;
     default:
-      await ctx.replyWithHTML(`Не умею использовать файлы типа <code>${mime}</code>`);
+      await ctx.replyWithHTML([
+        `Не знаю как использовать файл типа <code>${mime}</code>`,
+        `, но я его запомнил как ${fileKey(file)}`,
+      ].join(''));
   }
 
-  await db.save(FILES_KEY, await db.getId(FILES_KEY), document);
 
+}
+
+export const SHOW_FILE_COMMAND = /^\/f_([x]?\d+)[ ]?([a-z]+)?/;
+
+function fileKey({ refId }) {
+  return `/f_${refId}`;
 }
 
 /**
@@ -56,8 +62,54 @@ export async function listFiles(ctx) {
 
   const files = await db.findAll(FILES_KEY);
 
-  await ctx.reply(files ? JSON.stringify(files, null, 2) : 'Не помню, чтобы мне присылали какие-то файлы');
+  if (!files) {
+    await ctx.reply('Не помню, чтобы мне присылали какие-то файлы. Пришли что-нибудь и я запомню.');
+    return;
+  }
 
+  const res = !param ? files.map(fileAsListItem).join('\n') : JSON.stringify(files, null, 2);
+
+  await ctx.replyWithHTML(res);
+
+}
+
+function fileAsListItem(file) {
+  return `${fileKey(file)} <b>${file.file_name}</b> <code>${file.mime_type}</code>`;
+}
+
+/**
+ * Show a file info
+ * @param {ContextMessageUpdate} ctx
+ * @returns {Promise<void>}
+ */
+
+export async function showFile(ctx) {
+
+  const { match } = ctx;
+  const [command, refId, format] = match;
+
+  debug(command, refId, format);
+
+  const item = await db.findByRefId(FILES_KEY, refId);
+
+  if (!item) {
+    await ctx.replyWithHTML(`Не нашел файла с номером <code>${refId}</code>`);
+    return;
+  }
+
+  if (format === 'plain') {
+    await ctx.reply(`${JSON.stringify(item, null, 2)}`);
+    return;
+  }
+
+  const reply = fileView(item);
+
+  await ctx.replyWithHTML(reply.join('\n'));
+
+}
+
+function fileView(file) {
+  return map(file, (val, key) => `${key}: <code>${JSON.stringify(val)}</code>`);
 }
 
 /**
@@ -105,37 +157,5 @@ async function getFile(url) {
   });
 
   return xlsx.parse(response.data, { type: 'buffer' });
-
-}
-
-
-function parseFramesFile(xls) {
-
-  const sheet = xls[0].data;
-  const [titles] = sheet;
-  const sheetData = sheet.slice(1);
-
-  const columns = importFrames.map(({ title, name, type }) => ({
-    type, name, idx: titles.indexOf(title), title,
-  }));
-
-  const missing = filter(columns, { idx: -1 });
-
-  if (missing.length) {
-    throw new Error(`Не найдены колонки: [${map(missing, 'title').join(', ')}]`);
-  }
-
-  return sheetData.map(row => {
-
-    const res = {};
-
-    columns.forEach(({ name, idx, type }) => {
-      const value = row[idx];
-      res[name] = type ? value : trim(value).replace(/<>/, '');
-    });
-
-    return res;
-
-  });
 
 }

@@ -1,10 +1,13 @@
 import log from 'sistemium-telegram/services/log';
 import escapeRegExp from 'lodash/escapeRegExp';
+import map from 'lodash/map';
+import trim from 'lodash/trim';
 import filter from 'lodash/filter';
 
 import importFrames from '../config/importFrames';
-import { findAll, find } from '../services/redisDB';
+import * as redis from '../services/redisDB';
 import { countableState } from '../services/lang';
+
 
 const { debug } = log('frames');
 
@@ -21,14 +24,14 @@ export const SHOW_ARTICLE_COMMAND = /^\/a_([x]?\d+)[ ]?([a-z]+)?/;
 export async function showFrame(ctx) {
 
   const { match } = ctx;
-  const [command, frameId, format] = match;
+  const [command, refId, format] = match;
 
-  debug(command, frameId, format);
+  debug(command, refId, format);
 
-  const frame = await find(FRAMES_KEY, frameId);
+  const frame = await redis.findByRefId(FRAMES_KEY, refId);
 
   if (!frame) {
-    await ctx.replyWithHTML(`Не нашел товара с кодом <code>${frameId}</code>`);
+    await ctx.replyWithHTML(`Не нашел товара с кодом <code>${refId}</code>`);
     return;
   }
 
@@ -64,14 +67,14 @@ function frameView(frame) {
 
 }
 
-export function displayFrame({ id, name }) {
-  return `• /a_${id} ${name}`;
+export function displayFrame({ refId, name }) {
+  return `• /a_${refId} ${name}`;
 }
 
 
 export async function searchFrames(text) {
 
-  const frames = await findAll(FRAMES_KEY);
+  const frames = await redis.findAll(FRAMES_KEY);
 
   const re = new RegExp(escapeRegExp(text), 'i');
   const codeRe = new RegExp(`^${escapeRegExp(text)}`, 'i');
@@ -81,6 +84,37 @@ export async function searchFrames(text) {
   function searcher({ name, article, id }) {
     return codeRe.test(id) || codeRe.test(article) || re.test(name);
   }
+
+}
+
+export function parseFramesFile(xls) {
+
+  const sheet = xls[0].data;
+  const [titles] = sheet;
+  const sheetData = sheet.slice(1);
+
+  const columns = importFrames.map(({ title, name, type }) => ({
+    type, name, idx: titles.indexOf(title), title,
+  }));
+
+  const missing = filter(columns, { idx: -1 });
+
+  if (missing.length) {
+    throw new Error(`Не найдены колонки: [${map(missing, 'title').join(', ')}]`);
+  }
+
+  return sheetData.map(row => {
+
+    const res = {};
+
+    columns.forEach(({ name, idx, type }) => {
+      const value = row[idx];
+      res[name] = type ? value : trim(value).replace(/<>/, '');
+    });
+
+    return res;
+
+  });
 
 }
 
