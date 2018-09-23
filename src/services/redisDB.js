@@ -9,6 +9,10 @@ export async function findAll(hashName) {
   return res && map(res, JSON.parse);
 }
 
+export async function destroy(hashName, id) {
+  return redis.hdelAsync(hashName, id);
+}
+
 export async function find(hashName, id) {
   const res = await redis.hgetAsync(hashName, id);
   return res && JSON.parse(res);
@@ -16,8 +20,7 @@ export async function find(hashName, id) {
 
 export async function findByRefId(hashName, refId) {
   const id = await redis.hgetAsync(refKey(hashName), refId);
-  const res = await redis.hgetAsync(hashName, id);
-  return res && JSON.parse(res);
+  return find(hashName, id);
 }
 
 export async function save(hashName, id, data) {

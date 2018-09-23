@@ -1,0 +1,68 @@
+{
+  "id": "2334493622489213495",
+  "from": {
+    "id": 543541652,
+    "is_bot": false,
+    "first_name": "Alexander",
+    "last_name": "Levin",
+    "username": "aliovin",
+    "language_code": "en-LT"
+  },
+  "message": {
+    "message_id": 621,
+    "from": {
+      "id": 624197606,
+      "is_bot": true,
+      "first_name": "Бот всерамки.рф",
+      "username": "VseRamkiBot"
+    },
+    "chat": {
+      "id": 543541652,
+      "first_name": "Alexander",
+      "last_name": "Levin",
+      "username": "aliovin",
+      "type": "private"
+    },
+    "date": 1537692385,
+    "text": "refId: 10\nfile_name: \"convertcsv-4.xlsx\"\nmime_type: \"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\"\nfile_id: \"BQADBAADugUAAldfOFE1wTAnlRRT2AI\"\nfile_size: 579871\nid: \"BQADBAADugUAAldfOFE1wTAnlRRT2AI\"\nts: \"2018-09-22T18:35:21.150Z\"",
+    "entities": [
+      {
+        "offset": 7,
+        "length": 2,
+        "type": "code"
+      },
+      {
+        "offset": 21,
+        "length": 19,
+        "type": "code"
+      },
+      {
+        "offset": 52,
+        "length": 67,
+        "type": "code"
+      },
+      {
+        "offset": 129,
+        "length": 33,
+        "type": "code"
+      },
+      {
+        "offset": 174,
+        "length": 6,
+        "type": "code"
+      },
+      {
+        "offset": 185,
+        "length": 33,
+        "type": "code"
+      },
+      {
+        "offset": 223,
+        "length": 26,
+        "type": "code"
+      }
+    ]
+  },
+  "chat_instance": "-7273160240900497379",
+  "data": "deleteFile#BQADBAADugUAAldfOFE1wTAnlRRT2AI"
+}

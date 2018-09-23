@@ -1,9 +1,11 @@
 import log from 'sistemium-telegram/services/log';
 import bot from 'sistemium-telegram/services/bot';
 
+import Markup from 'telegraf/markup';
 import axios from 'axios';
 import xlsx from 'node-xlsx';
 import map from 'lodash/map';
+
 import * as db from '../services/redisDB';
 import { FRAMES_KEY, parseFramesFile } from './frames';
 
@@ -78,6 +80,52 @@ function fileAsListItem(file) {
 }
 
 /**
+ * Action handler to show a file download link
+ * @param {ContextMessageUpdate} ctx
+ * @returns {Promise<void>}
+ */
+
+export async function downloadFile(ctx) {
+
+  const { match } = ctx;
+  const [action, fileId] = match;
+
+  debug(action, fileId);
+
+  await ctx.replyWithDocument(fileId);
+
+}
+
+/**
+ * Action handler to delete a file
+ * @param {ContextMessageUpdate} ctx
+ * @returns {Promise<void>}
+ */
+
+export async function deleteFile(ctx) {
+
+  const { match, callbackQuery } = ctx;
+  const [action, fileId] = match;
+
+  debug(action, fileId);
+  // debug(JSON.stringify(callbackQuery));
+
+  const file = await db.find(FILES_KEY, fileId);
+
+  await ctx.deleteMessage(callbackQuery.message_id);
+
+  if (!file) {
+    await ctx.answerCbQuery('Файл уже удален');
+    return;
+  }
+
+  await db.destroy(FILES_KEY, fileId);
+
+  await ctx.replyWithHTML(`Удалил файл №${file.refId} <b>${file.file_name}</b>`);
+
+}
+
+/**
  * Show a file info
  * @param {ContextMessageUpdate} ctx
  * @returns {Promise<void>}
@@ -102,9 +150,17 @@ export async function showFile(ctx) {
     return;
   }
 
-  const reply = fileView(item);
+  // const url = await bot.telegram.getFileLink(item.file_id);
 
-  await ctx.replyWithHTML(reply.join('\n'));
+  const reply = fileView(item);
+  const keyBoard = Markup.inlineKeyboard([
+    Markup.callbackButton('️Удалить', `deleteFile#${item.id}`),
+    Markup.callbackButton('Скачать', `download#${item.id}`),
+  ]);
+
+  // debug(JSON.stringify(keyBoard));
+
+  await ctx.replyWithHTML(reply.join('\n'), keyBoard.extra());
 
 }
 

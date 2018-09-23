@@ -16,6 +16,9 @@ bot.command('start', onStart);
 bot.command('files', files.listFiles);
 bot.command('getFile', files.onGetFile);
 
+bot.action(/download#(.+)/, files.downloadFile);
+bot.action(/deleteFile#(.+)/, files.deleteFile);
+
 bot.command('photos', listPhotos);
 
 bot.hears(frames.SHOW_ARTICLE_COMMAND, frames.showFrame);

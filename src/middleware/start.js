@@ -14,7 +14,7 @@ export default async function (ctx) {
     '\nТы можешь мне написать мне что-то, а я поищу подходящие рамки и багеты.',
   ];
 
-  await ctx.replyWithHTML(reply.join('\n'));
+  await ctx.replyWithHTML(reply.join('\n'), { reply_markup: { remove_keyboard: true } });
 
 }
 
