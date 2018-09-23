@@ -14,6 +14,7 @@ import { countableState } from '../services/lang';
 const { debug } = log('frames');
 
 export const FRAMES_KEY = 'frames';
+export const PICTURES_KEY = 'pictures';
 
 export const SHOW_ARTICLE_COMMAND = /^\/a_([x]?\d+)[ ]?([a-z]+)?/;
 
@@ -132,10 +133,44 @@ export function frameCount(count) {
 
 }
 
+export async function importImageFile(ctx, file) {
+
+  const { file_name: name, thumb: { file_id: id }, file_id: largeId } = file;
+  const [, article] = name.match(/(.+)\.png/);
+
+  debug(name, article);
+
+  const data = {
+    largeId,
+    thumbId: id,
+    name,
+    article,
+  };
+
+  await ctx.replyWithChatAction('upload_photo');
+
+  const url = await bot.telegram.getFileLink(largeId);
+
+  const { data: source } = await axios({
+    method: 'get',
+    responseType: 'arraybuffer',
+    url,
+    headers: {
+      'Content-Type': file.mime_type,
+    },
+  });
+
+  const msg = await bot.telegram.sendPhoto(ctx.message.chat.id, { source }, { caption: article });
+
+  data.images = msg.photo;
+
+  const picture = await redis.save(PICTURES_KEY, id, data);
+
+  await ctx.reply(JSON.stringify(picture, null, 2));
+
+}
 
 export async function importFramesFromFile(ctx, fileId) {
-
-  await ctx.replyWithChatAction('typing');
 
   const url = await bot.telegram.getFileLink(fileId);
   const xls = await getFile(url);

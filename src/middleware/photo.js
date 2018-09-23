@@ -14,7 +14,9 @@ export async function onPhoto(ctx) {
 
   debug('onPhoto', JSON.stringify(photo));
 
-  await ctx.replyWithHTML(`Получил картинку <b>${photo.name}</b>, попробую её изучить!`);
+  await ctx.replyWithHTML(
+    'Получил картинку, но мне нужно, чтобы ты ее как файл отправил, иначе я артикул не увижу!',
+  );
 
 }
 

@@ -4,7 +4,7 @@ import Markup from 'telegraf/markup';
 import map from 'lodash/map';
 
 import * as db from '../services/redisDB';
-import { importFramesFromFile } from './frames';
+import { importFramesFromFile, importImageFile } from './frames';
 
 const FILES_KEY = 'files';
 
@@ -19,16 +19,24 @@ const { debug } = log('document');
 export async function onDocument(ctx) {
 
   const { message: { document } } = ctx;
-  const { file_id: fileId, file_name: name, mime_type: mime } = document;
+  const { file_name: name, mime_type: mime, thumb } = document;
+
+  const fileId = thumb ? thumb.file_id : document.file_id;
 
   debug('onDocument', fileId);
 
+
   await ctx.replyWithHTML(`Получил файл <b>${name}</b>, попробую его изучить!`);
+  await ctx.replyWithChatAction('typing');
+
   const file = await db.save(FILES_KEY, fileId, document);
 
   switch (mime) {
     case 'application/x-msexcel':
       await importFramesFromFile(ctx, fileId);
+      break;
+    case 'image/png':
+      await importImageFile(ctx, file);
       break;
     default:
       await ctx.replyWithHTML([
@@ -152,7 +160,7 @@ export async function showFile(ctx) {
   const reply = fileView(item);
   const keyBoard = Markup.inlineKeyboard([
     Markup.callbackButton('️Удалить', `deleteFile#${item.id}`),
-    Markup.callbackButton('Скачать', `download#${item.id}`),
+    Markup.callbackButton('Скачать', `download#${item.file_id}`),
   ]);
 
   // debug(JSON.stringify(keyBoard));
