@@ -1,13 +1,15 @@
 import log from 'sistemium-telegram/services/log';
+import bot from 'sistemium-telegram/services/bot';
 import escapeRegExp from 'lodash/escapeRegExp';
 import map from 'lodash/map';
 import trim from 'lodash/trim';
 import filter from 'lodash/filter';
+import axios from 'axios';
+import xlsx from 'node-xlsx';
 
 import importFrames from '../config/importFrames';
 import * as redis from '../services/redisDB';
 import { countableState } from '../services/lang';
-
 
 const { debug } = log('frames');
 
@@ -127,5 +129,36 @@ const frameWords = {
 export function frameCount(count) {
 
   return frameWords[countableState(count)];
+
+}
+
+
+export async function importFramesFromFile(ctx, fileId) {
+
+  await ctx.replyWithChatAction('typing');
+
+  const url = await bot.telegram.getFileLink(fileId);
+  const xls = await getFile(url);
+
+  const data = parseFramesFile(xls);
+
+  await redis.saveMany(FRAMES_KEY, data);
+
+  await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> записей`);
+
+}
+
+async function getFile(url) {
+
+  const response = await axios({
+    method: 'get',
+    responseType: 'arraybuffer',
+    url,
+    headers: {
+      'Content-Type': 'application/x-msexcel',
+    },
+  });
+
+  return xlsx.parse(response.data, { type: 'buffer' });
 
 }

@@ -1,13 +1,10 @@
 import log from 'sistemium-telegram/services/log';
-import bot from 'sistemium-telegram/services/bot';
 
 import Markup from 'telegraf/markup';
-import axios from 'axios';
-import xlsx from 'node-xlsx';
 import map from 'lodash/map';
 
 import * as db from '../services/redisDB';
-import { FRAMES_KEY, parseFramesFile } from './frames';
+import { importFramesFromFile } from './frames';
 
 const FILES_KEY = 'files';
 
@@ -183,35 +180,5 @@ export async function onGetFile(ctx) {
   debug('onGetFile', fileId);
 
   await importFramesFromFile(ctx, fileId);
-
-}
-
-async function importFramesFromFile(ctx, fileId) {
-
-  await ctx.replyWithChatAction('typing');
-
-  const url = await bot.telegram.getFileLink(fileId);
-  const xls = await getFile(url);
-
-  const data = parseFramesFile(xls);
-
-  await db.saveMany(FRAMES_KEY, data);
-
-  await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> записей`);
-
-}
-
-async function getFile(url) {
-
-  const response = await axios({
-    method: 'get',
-    responseType: 'arraybuffer',
-    url,
-    headers: {
-      'Content-Type': 'application/x-msexcel',
-    },
-  });
-
-  return xlsx.parse(response.data, { type: 'buffer' });
 
 }
