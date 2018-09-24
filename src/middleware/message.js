@@ -1,5 +1,6 @@
 import log from 'sistemium-telegram/services/log';
 import sortBy from 'lodash/sortBy';
+import min from 'lodash/min';
 import findIndex from 'lodash/findIndex';
 import slice from 'lodash/slice';
 
@@ -31,6 +32,8 @@ export async function onMessage(ctx) {
     return;
   }
 
+  await ctx.replyWithChatAction('typing');
+
   const { reply, keyboard } = await framesPageReply(text);
 
   await ctx.replyWithHTML(reply.join('\n'), keyboard.extra());
@@ -45,14 +48,19 @@ export async function onMessage(ctx) {
 
 export async function pageForward(ctx) {
 
-  const { match, callbackQuery } = ctx;
+  const { match, callbackQuery: { message } } = ctx;
   const [action, direction, pageId] = match;
 
-  debug(action, direction, pageId, callbackQuery.message.message_id);
+  debug(action, direction, pageId, message.message_id);
 
-  const { reply, keyboard } = await framesPageReply('сосна', direction, pageId);
+  const { offset, length } = message.entities[0];
+  const searchText = message.text.slice(offset, offset + length);
 
-  await ctx.replyWithHTML(reply.join('\n'), keyboard.extra());
+  const { reply, keyboard } = await framesPageReply(searchText, direction, pageId);
+
+  await ctx.answerCbQuery('Поиск завершен');
+  const extra = keyboard.extra();
+  await ctx.editMessageText(reply.join('\n'), { parse_mode: 'HTML', ...extra });
 
 }
 
@@ -71,14 +79,15 @@ async function framesPageReply(search, direction, fromPageId) {
   if (fromPageId) {
     const pageIndex = findIndex(matching, ({ id }) => id === fromPageId);
     startIndex = pageIndex + (direction === 'forward' ? PAGE_SIZE : -PAGE_SIZE);
+    startIndex = Math.ceil(startIndex / PAGE_SIZE) * PAGE_SIZE;
     debug('startIndex:', pageIndex, startIndex);
   }
 
   const reply = [
-    `По запросу <b>${search}</b> нашлось ${length} ${frameCount(length)}:`,
+    `По запросу <b>${search}</b> находится <b>${length}</b> ${frameCount(length)}:`,
   ];
 
-  const lastIndex = startIndex + PAGE_SIZE - 1;
+  const lastIndex = min([startIndex + PAGE_SIZE - 1, length - 1]);
 
   const toShow = slice(matching, startIndex, lastIndex + 1);
 
@@ -99,6 +108,8 @@ async function framesPageReply(search, direction, fromPageId) {
 
   debug('framesPageReply pageId:', pageId);
 
+  const nextPageCount = min([PAGE_SIZE, length - startIndex - PAGE_SIZE]);
+
   const keyboard = Markup.inlineKeyboard([
     Markup.callbackButton(
       `Предыдущие ${PAGE_SIZE}`,
@@ -106,9 +117,9 @@ async function framesPageReply(search, direction, fromPageId) {
       startIndex === 0,
     ),
     Markup.callbackButton(
-      `Следующие ${PAGE_SIZE}`,
+      `Следующие ${nextPageCount}`,
       `page_forward#${pageId}`,
-      length <= lastIndex,
+      nextPageCount <= 0,
     ),
   ]);
 

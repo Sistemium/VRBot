@@ -48,21 +48,27 @@ export async function showFrame(ctx) {
   await ctx.replyWithHTML(reply.join('\n'));
 
   const pictures = await redis.findAll(PICTURES_KEY) || [];
-
   const matching = filter(pictures, matchesArticle);
 
-  const replyPictures = matching.map(async ({ images, article }) => {
-    await ctx.replyWithPhoto(images[0].file_id, { caption: article });
-  });
+  if (matching.length) {
 
-  await Promise.all(replyPictures);
+    const mediaGroup = map(matching, ({ images }) => ({
+      media: images[0].file_id,
+      type: 'photo',
+    }));
 
-  if (!matching.length) {
+    await ctx.replyWithMediaGroup(mediaGroup);
+
+  } else {
     await ctx.reply('Подходящих картинок не нашел');
   }
 
   function matchesArticle({ article }) {
-    return article === frame.article;
+    if (!frame.article) {
+      return false;
+    }
+    const [, bgArticle] = frame.article.match(/(.+)(РП|РП)\d+/i) || [];
+    return article === frame.article || article === bgArticle;
   }
 
 }
@@ -155,7 +161,7 @@ export function frameCount(count) {
 export async function importImageFile(ctx, file) {
 
   const { file_name: name, thumb: { file_id: id }, file_id: largeId } = file;
-  const [, article] = name.match(/(.+)\.png/);
+  const [, article] = name.match(/([^_.]+)(_Багет)?[._]+png$/i);
 
   debug(name, article);
 
