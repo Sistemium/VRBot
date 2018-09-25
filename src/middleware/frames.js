@@ -7,6 +7,7 @@ import filter from 'lodash/filter';
 import axios from 'axios';
 import xlsx from 'node-xlsx';
 
+import { getImagebuffer } from '../services/imaging';
 import importFrames from '../config/importFrames';
 import * as redis from '../services/redisDB';
 import { countableState } from '../services/lang';
@@ -68,7 +69,7 @@ export async function showFrame(ctx) {
     if (!frame.article) {
       return false;
     }
-    const [, bgArticle] = frame.article.match(/(.+)(РП|РП)\d+/i) || [];
+    const [, bgArticle] = frame.article.match(/(.+)(РД|РП)\d+/i) || [];
     return article === frame.article || article === bgArticle;
   }
 
@@ -176,23 +177,15 @@ export async function importImageFile(ctx, file) {
   await ctx.replyWithChatAction('upload_photo');
 
   const url = await bot.telegram.getFileLink(largeId);
-
-  const { data: source } = await axios({
-    method: 'get',
-    responseType: 'arraybuffer',
-    url,
-    headers: {
-      'Content-Type': file.mime_type,
-    },
-  });
-
+  const source = await getImagebuffer(url, file.mime_type);
   const msg = await bot.telegram.sendPhoto(ctx.message.chat.id, { source });
 
   data.images = msg.photo;
 
-  const picture = await redis.save(PICTURES_KEY, id, data);
+  await redis.save(PICTURES_KEY, id, data);
 
-  await ctx.replyWithHTML(`Запомнил картинку /p_${picture.refId} с артикулом <b>${article}</b>`);
+  const reply = `Запомнил картинку /f_${file.refId} с артикулом <b>${article}</b>`;
+  await ctx.replyWithHTML(reply);
 
 }
 
