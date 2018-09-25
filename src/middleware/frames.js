@@ -45,22 +45,23 @@ export async function showFrame(ctx) {
 
   const reply = frameView(frame);
 
-  await ctx.replyWithHTML(reply.join('\n'));
 
   const pictures = await redis.findAll(PICTURES_KEY) || [];
   const matching = filter(pictures, matchesArticle);
 
-  if (matching.length) {
+  if (!matching.length) {
+    reply.push('\nПодходящих картинок не нашел');
+  }
 
-    const mediaGroup = map(matching, ({ images }) => ({
-      media: images[0].file_id,
-      type: 'photo',
-    }));
+  await ctx.replyWithHTML(reply.join('\n'));
 
+  const mediaGroup = map(matching, ({ images }) => ({
+    media: images[0].file_id,
+    type: 'photo',
+  }));
+
+  if (mediaGroup.length) {
     await ctx.replyWithMediaGroup(mediaGroup);
-
-  } else {
-    await ctx.reply('Подходящих картинок не нашел');
   }
 
   function matchesArticle({ article }) {
