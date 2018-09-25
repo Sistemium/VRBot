@@ -1,6 +1,7 @@
 import bot, { BOT_ID } from 'sistemium-telegram/services/bot';
 import log from 'sistemium-telegram/services/log';
 import session from 'sistemium-telegram/services/session';
+import './config/aws';
 
 const { error } = log('index');
 
