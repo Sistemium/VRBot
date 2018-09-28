@@ -7,15 +7,13 @@ import filter from 'lodash/filter';
 import axios from 'axios';
 import xlsx from 'node-xlsx';
 
-import { getImagebuffer } from '../services/imaging';
 import importFrames from '../config/importFrames';
-import * as redis from '../services/redisDB';
+import * as db from '../services/redisDB';
+import * as models from '../services/models';
+import * as imaging from '../services/imaging';
 import { countableState } from '../services/lang';
 
 const { debug } = log('frames');
-
-export const FRAMES_KEY = 'frames';
-export const PICTURES_KEY = 'pictures';
 
 export const SHOW_ARTICLE_COMMAND = /^\/a_([x]?\d+)[ ]?([a-z]+)?/;
 
@@ -32,7 +30,7 @@ export async function showFrame(ctx) {
 
   debug(command, refId, format);
 
-  const frame = await redis.findByRefId(FRAMES_KEY, refId);
+  const frame = await db.findByRefId(models.FRAMES_KEY, refId);
 
   if (!frame) {
     await ctx.replyWithHTML(`Не нашел товара с кодом <code>${refId}</code>`);
@@ -46,8 +44,7 @@ export async function showFrame(ctx) {
 
   const reply = frameView(frame);
 
-
-  const pictures = await redis.findAll(PICTURES_KEY) || [];
+  const pictures = await db.findAll(models.PICTURES_KEY) || [];
   const matching = filter(pictures, matchesArticle);
 
   if (!matching.length) {
@@ -104,7 +101,7 @@ export function displayFrame({ refId, name }) {
 
 export async function searchFrames(text) {
 
-  const frames = await redis.findAll(FRAMES_KEY);
+  const frames = await db.findAll(models.FRAMES_KEY);
 
   const re = new RegExp(escapeRegExp(text), 'i');
   const codeRe = new RegExp(`^${escapeRegExp(text)}`, 'i');
@@ -160,32 +157,53 @@ export function frameCount(count) {
 
 }
 
+export async function importPhoto(ctx) {
+
+  const { match } = ctx;
+  const [command, idRef] = match;
+
+  debug(command, idRef);
+
+  if (!idRef) {
+    throw new Error('Не указан номер файла');
+  }
+
+  const file = await db.findByRefId(models.FILES_KEY, idRef);
+
+  if (!file) {
+    throw new Error(`Не нашел файла с номером ${idRef}`);
+  }
+
+  await importImageFile(ctx, file);
+
+}
+
 export async function importImageFile(ctx, file) {
 
-  const { file_name: name, thumb: { file_id: id }, file_id: largeId } = file;
-  const [, article] = name.match(/([^_.]+)(_Багет)?[._]+png$/i);
+  const {
+    file_name: name,
+    thumb: { file_id: thumbId },
+    file_id: largeId,
+    mime_type: mimeType,
+  } = file;
 
-  debug(name, article);
+  debug(name, mimeType);
 
   const data = {
     largeId,
-    thumbId: id,
+    thumbId,
     name,
-    article,
   };
 
   await ctx.replyWithChatAction('upload_photo');
 
+  debug('importImageFile:', largeId);
   const url = await bot.telegram.getFileLink(largeId);
-  const source = await getImagebuffer(url, file.mime_type);
-  const msg = await bot.telegram.sendPhoto(ctx.message.chat.id, { source });
+  debug('importImageFile:', url);
 
-  data.images = msg.photo;
+  const source = await imaging.getImageBuffer(url, mimeType);
 
-  await redis.save(PICTURES_KEY, id, data);
-
-  const reply = `Запомнил картинку /f_${file.refId} с артикулом <b>${article}</b>`;
-  await ctx.replyWithHTML(reply);
+  await imaging.saveImageBuffer(ctx, source, thumbId, data);
 
 }
 
@@ -196,7 +214,7 @@ export async function importFramesFromFile(ctx, fileId) {
 
   const data = parseFramesFile(xls);
 
-  await redis.saveMany(FRAMES_KEY, data);
+  await db.saveMany(models.FRAMES_KEY, data);
 
   await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> записей`);
 

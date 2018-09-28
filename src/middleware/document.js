@@ -4,9 +4,8 @@ import Markup from 'telegraf/markup';
 import map from 'lodash/map';
 
 import * as db from '../services/redisDB';
+import * as models from '../services/models';
 import { importFramesFromFile, importImageFile } from './frames';
-
-const FILES_KEY = 'files';
 
 const { debug } = log('document');
 
@@ -25,17 +24,17 @@ export async function onDocument(ctx) {
 
   debug('onDocument', fileId);
 
-
   await ctx.replyWithHTML(`Получил файл <b>${name}</b>, попробую его изучить!`);
   await ctx.replyWithChatAction('typing');
 
-  const file = await db.save(FILES_KEY, fileId, document);
+  const file = await db.save(models.FILES_KEY, fileId, document);
 
   switch (mime) {
     case 'application/x-msexcel':
       await importFramesFromFile(ctx, fileId);
       break;
     case 'image/png':
+    case 'x-tiff':
       await importImageFile(ctx, file);
       break;
     default:
@@ -67,7 +66,7 @@ export async function listFiles(ctx) {
 
   debug(command, param);
 
-  const files = await db.findAll(FILES_KEY);
+  const files = await db.findAll(models.FILES_KEY);
 
   if (!files) {
     await ctx.reply('Не помню, чтобы мне присылали какие-то файлы. Пришли что-нибудь и я запомню.');
@@ -115,7 +114,7 @@ export async function deleteFile(ctx) {
   debug(action, fileId);
   // debug(JSON.stringify(callbackQuery));
 
-  const file = await db.find(FILES_KEY, fileId);
+  const file = await db.find(models.FILES_KEY, fileId);
 
   await ctx.deleteMessage(callbackQuery.message_id);
 
@@ -124,7 +123,7 @@ export async function deleteFile(ctx) {
     return;
   }
 
-  await db.destroy(FILES_KEY, fileId);
+  await db.destroy(models.FILES_KEY, fileId);
 
   await ctx.replyWithHTML(`Удалил файл №${file.refId} <b>${file.file_name}</b>`);
 
@@ -143,7 +142,7 @@ export async function showFile(ctx) {
 
   debug(command, refId, format);
 
-  const item = await db.findByRefId(FILES_KEY, refId);
+  const item = await db.findByRefId(models.FILES_KEY, refId);
 
   if (!item) {
     await ctx.replyWithHTML(`Не нашел файла с номером <code>${refId}</code>`);

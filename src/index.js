@@ -28,6 +28,6 @@ async function exceptionHandler(ctx, next) {
 
 }
 
-bot.catch(({ name, message }) => {
-  error(name, message);
+bot.catch(({ name, stack }) => {
+  error(name, stack);
 });
