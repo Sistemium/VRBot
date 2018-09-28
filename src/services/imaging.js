@@ -1,7 +1,7 @@
 import { S3 } from 'aws-sdk';
 import log from 'sistemium-telegram/services/log';
 import axios from 'axios';
-import whilst from 'async/whilst';
+import { whilstAsync } from 'sistemium-telegram/services/async';
 import sharp from 'sharp';
 import filter from 'lodash/filter';
 import * as db from './redisDB';
@@ -18,7 +18,7 @@ export async function photosToImport() {
   const params = {
     Bucket: BUCKET,
     MaxKeys: 600,
-    Prefix: 'tiff/',
+    Prefix: 'import/',
   };
 
   return new Promise(async (resolve, reject) => {
@@ -30,7 +30,7 @@ export async function photosToImport() {
 
       const { Contents: result } = await req.promise();
 
-      whilst(
+      await whilstAsync(
         () => req.response.hasNextPage(),
         async () => {
           pageNumber += 1;
@@ -39,8 +39,9 @@ export async function photosToImport() {
           const { Contents: nextPageData } = await req.promise();
           result.push(...nextPageData);
         },
-        err => (err ? reject(err) : resolve(filter(result, 'Size'))),
       );
+
+      resolve(filter(result, 'Size'));
 
     } catch (e) {
       reject(e);
