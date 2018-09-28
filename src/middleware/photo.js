@@ -1,5 +1,7 @@
 import log from 'sistemium-telegram/services/log';
-import { eachSeriesAsync } from '../config/async';
+import take from 'lodash/take';
+
+import * as async from 'sistemium-telegram/services/async';
 
 import * as db from '../services/redisDB';
 import * as models from '../services/models';
@@ -41,40 +43,73 @@ export async function listPhotos(ctx) {
 
 export async function importPhotos(ctx) {
 
-  const { message: { text } } = ctx;
+  const { match: [text, param] } = ctx;
+  const limit = parseInt(param, 0) || 5;
 
   debug(text);
 
+  await ctx.replyWithHTML('Получаю список файлов в S3');
   await ctx.replyWithChatAction('typing');
+
   const s3Objects = await imaging.photosToImport();
   await ctx.replyWithHTML(`Получил список файлов: <b>${s3Objects.length}</b> шт`);
 
-  await eachSeriesAsync([s3Objects[0]], async s3Object => {
+  const unprocessed = await async.filterSeriesAsync(s3Objects, processedImageFilter);
+
+  await ctx.replyWithHTML([
+    `Из них необработано: <b>${unprocessed.length}</b> шт.`,
+    `Попробую обработать <b>${limit < unprocessed.length ? limit : 'все'}</b>`,
+  ].join(' '));
+
+  const objectsToProcess = take(unprocessed, limit);
+  let processedCount = 0;
+
+  await async.eachSeriesAsync(objectsToProcess, async s3Object => {
 
     const { Key, ETag } = s3Object;
-    const id = ETag.replace(/"/g, '');
+    const id = idFromETag(ETag);
     const [, name] = Key.match(/\/([^/]+)$/);
-
-    const existing = await db.find(models.PICTURES_KEY, id);
-
-    if (existing) {
-      debug('importPhotos already imported:', Key, ETag);
-      return;
-    }
 
     await ctx.replyWithHTML(`Пробую обработать <b>${Key}</b>`);
 
     await ctx.replyWithChatAction('typing');
     const source = await imaging.getS3ImageBuffer({ Key });
 
-    await ctx.replyWithHTML(
-      `Получил изображение из S3 <code>${source.length}</code> байт`,
-    );
+    await ctx.replyWithHTML([
+      `Получил изображение <code>№${processedCount + 1}</code>`,
+      `<code>${source.length}</code> байт`,
+    ].join(' '));
 
     await imaging.saveImageBuffer(ctx, source, id, { name });
 
+    await ctx.replyWithChatAction('typing');
+
+    processedCount += 1;
+
   });
 
-  debug('done');
+  await ctx.replyWithHTML(
+    `Успешно обработано изображений: <code>${processedCount}</code> шт.`,
+  );
 
+  async function processedImageFilter(s3Object) {
+
+    const { Key, ETag } = s3Object;
+    const id = idFromETag(ETag);
+    const existing = await db.find(models.PICTURES_KEY, id);
+
+    if (existing) {
+      debug('importPhotos already imported:', Key, ETag);
+      return false;
+    }
+
+    return true;
+
+  }
+
+}
+
+
+function idFromETag(ETag) {
+  return ETag.replace(/"/g, '');
 }

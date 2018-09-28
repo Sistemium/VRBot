@@ -16,7 +16,7 @@ bot.command('start', onStart);
 bot.command('files', files.listFiles);
 bot.command('getFile', files.onGetFile);
 
-bot.command('importPhotos', photo.importPhotos);
+bot.hears(/\/importPhotos[ _]?(\d*)/i, photo.importPhotos);
 bot.hears(/\/importPhoto[ _](\d+)/i, frames.importPhoto);
 
 bot.action(/download#(.+)/, files.downloadFile);
