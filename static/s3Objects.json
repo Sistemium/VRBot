@@ -1,0 +1,24 @@
+[
+  {
+    "Key": "tiff/",
+    "LastModified": "2018-09-28T07:02:02.000Z",
+    "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+    "Size": 0,
+    "StorageClass": "STANDARD",
+    "Owner": {
+      "DisplayName": "aws",
+      "ID": "12a21d9cfaca1c6cb2c49ee1afd8b1138ed9a97a8271a130f6fd444160983ce1"
+    }
+  },
+  {
+    "Key": "tiff/1-112_Альфа_канал.tif",
+    "LastModified": "2018-09-28T07:02:12.000Z",
+    "ETag": "\"6b9a87ab29e7e7394e0e30cd8ca586ce-4\"",
+    "Size": 60887278,
+    "StorageClass": "STANDARD",
+    "Owner": {
+      "DisplayName": "aws",
+      "ID": "12a21d9cfaca1c6cb2c49ee1afd8b1138ed9a97a8271a130f6fd444160983ce1"
+    }
+  }
+]
