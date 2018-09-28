@@ -19,7 +19,10 @@ bot.command('getFile', files.onGetFile);
 bot.hears(/\/importPhotos[ _]?(\d*)/i, photo.importPhotos);
 bot.hears(/\/importPhoto[ _](\d+)/i, frames.importPhoto);
 
-bot.action(/download#(.+)/, files.downloadFile);
+bot.hears(photo.SHOW_PHOTO_COMMAND, photo.showPhoto);
+bot.action(/deletePhoto#(.+)/, photo.deletePhoto);
+
+bot.action(/downloadFile#(.+)/, files.downloadFile);
 bot.action(/deleteFile#(.+)/, files.deleteFile);
 
 bot.action(/page_(forward|back)#(.+)/, message.pageForward);

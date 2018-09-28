@@ -1,5 +1,7 @@
 import log from 'sistemium-telegram/services/log';
 import take from 'lodash/take';
+import map from 'lodash/map';
+import Markup from 'telegraf/markup';
 
 import * as async from 'sistemium-telegram/services/async';
 
@@ -32,6 +34,90 @@ export async function listPhotos(ctx) {
   debug('listPhotos');
 
   await ctx.replyWithHTML('Понял, что нужно показать список картинок, но пока не умею этого');
+
+}
+
+export const SHOW_PHOTO_COMMAND = /^\/p_([x]?\d+)[ ]?([a-z]+)?/;
+
+// function photoKey({ refId }) {
+//   return `/p_${refId}`;
+// }
+
+
+/**
+ * Show a file info
+ * @param {ContextMessageUpdate} ctx
+ * @returns {Promise<void>}
+ */
+
+export async function showPhoto(ctx) {
+
+  const { match } = ctx;
+  const [command, refId, format] = match;
+
+  debug(command, refId, format);
+
+  const item = await db.findByRefId(models.PICTURES_KEY, refId);
+
+  if (!item) {
+    await ctx.replyWithHTML(`Не нашел картинки с номером <code>${refId}</code>`);
+    return;
+  }
+
+  if (format === 'plain') {
+    await ctx.reply(`${JSON.stringify(item, null, 2)}`);
+    return;
+  }
+
+  const reply = photoView(item);
+  const keyBoard = Markup.inlineKeyboard([
+    Markup.callbackButton('️Удалить', `deletePhoto#${item.id}`),
+  ]);
+
+  // debug(JSON.stringify(keyBoard));
+  await ctx.replyWithPhoto(item.images[0].file_id);
+  await ctx.replyWithHTML(reply.join('\n'), keyBoard.extra());
+
+}
+
+function photoView(file) {
+  return map(file, (val, key) => {
+    const res = [`${key}:`];
+    if (Array.isArray(val)) {
+      res.push(...val.map(f => `\n<code>${JSON.stringify(f)}</code>`));
+    } else {
+      res.push(` <code>${JSON.stringify(val)}</code>`);
+    }
+    return res.join('');
+  });
+}
+
+/**
+ * Action handler to delete a photo
+ * @param {ContextMessageUpdate} ctx
+ * @returns {Promise<void>}
+ */
+
+export async function deletePhoto(ctx) {
+
+  const { match, callbackQuery } = ctx;
+  const [action, fileId] = match;
+
+  debug(action, fileId);
+  // debug(JSON.stringify(callbackQuery));
+
+  const file = await db.find(models.PICTURES_KEY, fileId);
+
+  await ctx.deleteMessage(callbackQuery.message_id);
+
+  if (!file) {
+    await ctx.answerCbQuery('Картинка уже удалена');
+    return;
+  }
+
+  await db.destroy(models.PICTURES_KEY, fileId);
+
+  await ctx.replyWithHTML(`Удалил картинку №${file.refId} <b>${file.name}</b>`);
 
 }
 

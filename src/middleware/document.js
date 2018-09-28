@@ -159,7 +159,7 @@ export async function showFile(ctx) {
   const reply = fileView(item);
   const keyBoard = Markup.inlineKeyboard([
     Markup.callbackButton('️Удалить', `deleteFile#${item.id}`),
-    Markup.callbackButton('Скачать', `download#${item.file_id}`),
+    Markup.callbackButton('Скачать', `downloadFile#${item.file_id}`),
   ]);
 
   // debug(JSON.stringify(keyBoard));
