@@ -49,6 +49,8 @@ export async function showFrame(ctx) {
 
   if (!matching.length) {
     reply.push('\nПодходящих картинок не нашел');
+  } else {
+    reply.push(matching.map(listPhotos).join(' '));
   }
 
   await ctx.replyWithHTML(reply.join('\n'));
@@ -68,6 +70,10 @@ export async function showFrame(ctx) {
     }
     const [, bgArticle] = frame.article.match(/(.+)(РД|РП)\d+/i) || [];
     return article === frame.article || article === bgArticle;
+  }
+
+  function listPhotos(photo) {
+    return `/p_${photo.refId}`;
   }
 
 }

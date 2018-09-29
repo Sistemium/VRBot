@@ -178,7 +178,7 @@ export async function saveImageBuffer(ctx, source, id, props) {
 
   const file = await db.save(models.PICTURES_KEY, id, data);
 
-  const reply = `Запомнил картинку /f_${file.refId} с артикулом <b>${article}</b>`;
+  const reply = `Запомнил картинку /p_${file.refId} с артикулом <b>${article}</b>`;
   await ctx.replyWithHTML(reply);
 
 }

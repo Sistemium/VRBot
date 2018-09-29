@@ -75,8 +75,8 @@ export async function showPhoto(ctx) {
   ]);
 
   // debug(JSON.stringify(keyBoard));
-  await ctx.replyWithPhoto(item.images[0].file_id);
   await ctx.replyWithHTML(reply.join('\n'), keyBoard.extra());
+  await ctx.replyWithPhoto(item.images[0].file_id);
 
 }
 
@@ -84,7 +84,8 @@ function photoView(file) {
   return map(file, (val, key) => {
     const res = [`${key}:`];
     if (Array.isArray(val)) {
-      res.push(...val.map(f => `\n<code>${JSON.stringify(f)}</code>`));
+      // res.push(...val.map(f => `\n<code>${JSON.stringify(f)}</code>`));
+      res.push(' ', val.length, 'шт.');
     } else {
       res.push(` <code>${JSON.stringify(val)}</code>`);
     }
