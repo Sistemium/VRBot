@@ -2,7 +2,7 @@
   "env": {
     "DEBUG": "stm:*",
     "PHRASE_NOT_IMPLEMENTED": "Я пока не понимаю такие команды",
-    "REDIS_DB": 7,
+    "REDIS_DB": 9,
     "BOT_USER_NAME": "VseRamkiBot",
     "DEBUG_NAMESPACE": "stm:bot",
     "ERROR_NAMESPACE": "stm:bot:error",
