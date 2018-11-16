@@ -46,10 +46,10 @@ const largesURL = 'https://s3-eu-west-1.amazonaws.com/vseramki/large';
 
 export async function syncSitePhotos(ctx) {
 
+  await ctx.replyWithChatAction('typing');
+
   const pictures = await db.findAll(models.PICTURES_KEY);
-
   debug('syncSitePhotos got pictures', pictures.length);
-
   const baguettePictures = sortBy(filter(pictures, isBaguettePicture), 'article');
 
   const baguetteImages = await api.get('BaguetteImage');
@@ -58,20 +58,68 @@ export async function syncSitePhotos(ctx) {
   const baguettes = await api.get('Baguette');
   debug('syncSitePhotos got baguettes', baguettes.length);
 
-  const toInsert = filter(baguettePictures.map(picture => {
-    const { article, name, refId } = picture;
+  const toInsert = imagesToCreate(baguettePictures, baguettes, baguetteImages, 'baguetteId');
 
-    const baguette = find(baguettes, { code: article });
+  await ctx.replyWithChatAction('upload_document');
 
-    if (!baguette) {
-      // debug('syncSitePhotos', 'not found for', article);
+  await async.eachSeriesAsync(
+    toInsert,
+    async image => {
+      const { id } = await api.post('BaguetteImage', image);
+      debug('syncSitePhotos uploaded BaguetteImage', id);
+    },
+  );
+
+  await ctx.replyWithHTML([
+    `BaguetteImage created: <b>${toInsert.length}</b>`,
+    `of: <b>${baguettePictures.length}</b>`,
+  ].join(' '));
+
+  await ctx.replyWithChatAction('typing');
+
+  const framePictures = sortBy(filter(pictures, isFramePicture), 'article');
+
+  const frameImages = await api.get('ArticleImage');
+  debug('syncSitePhotos got frameImages', frameImages.length);
+
+  const frames = await api.get('Article');
+  debug('syncSitePhotos got frames', frames.length);
+
+  const toInsertFrames = imagesToCreate(framePictures, frames, frameImages, 'articleId');
+
+  await ctx.replyWithChatAction('upload_document');
+
+  await async.eachSeriesAsync(
+    toInsertFrames,
+    async image => {
+      const { id } = await api.post('ArticleImage', image);
+      debug('syncSitePhotos uploaded ArticleImage', id);
+    },
+  );
+
+  await ctx.replyWithHTML([
+    `ArticleImage created: <b>${toInsertFrames.length}</b>`,
+    `of: <b>${framePictures.length}</b>`,
+  ].join(' '));
+
+}
+
+function imagesToCreate(pictures, articles, images, parentKey) {
+
+  return filter(pictures.map(picture => {
+    const { article: code, name, refId } = picture;
+
+    const article = find(articles, { code });
+
+    if (!article) {
+      debug('imagesToCreate not found', refId, `"${code}"`, name);
       return false;
     }
 
-    debug('syncSitePhotos', 'found baguette', refId, `"${article}"`, name);
+    debug('imagesToCreate found', refId, `"${code}"`, name);
 
     const thumbnailSrc = `${thumbnailsURL}/${name}`;
-    const existingImage = find(baguetteImages, { thumbnailSrc });
+    const existingImage = find(images, { thumbnailSrc });
 
     if (existingImage) {
       return false;
@@ -83,33 +131,19 @@ export async function syncSitePhotos(ctx) {
       largeSrc,
       thumbnailSrc,
       smallSrc: largeSrc,
-      baguetteId: baguette.id,
+      [parentKey]: article.id,
     };
 
   }));
-
-  await ctx.replyWithChatAction('upload_document');
-
-  await async.eachSeriesAsync(
-    toInsert,
-    async baguetteImage => {
-      const { id } = await api.post('BaguetteImage', baguetteImage);
-      debug('syncSitePhotos uploaded BaguetteImage', id);
-    },
-  );
-
-  const reply = [
-    JSON.stringify(toInsert[0], null, 2),
-    `To insert: <b>${toInsert.length}</b>`,
-    `of: <b>${baguettePictures.length}</b>`,
-  ];
-
-  await ctx.replyWithHTML(reply.join(' '));
 
 }
 
 function isBaguettePicture(picture) {
   return /багет\.[^.]/i.test(picture.name);
+}
+
+function isFramePicture({ name }) {
+  return !/багет/i.test(name) && !/\.\./.test(name);
 }
 
 export const SHOW_PHOTO_COMMAND = /^\/p_([x]?\d+)[ ]?([a-z]+)?/;
