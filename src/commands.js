@@ -28,6 +28,7 @@ bot.action(/deleteFile#(.+)/, files.deleteFile);
 bot.action(/page_(forward|back)#(.+)/, message.pageForward);
 
 bot.command('photos', photo.listPhotos);
+bot.command('syncPhotos', photo.syncSitePhotos);
 
 bot.hears(frames.SHOW_ARTICLE_COMMAND, frames.showFrame);
 bot.hears(files.SHOW_FILE_COMMAND, files.showFile);

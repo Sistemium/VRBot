@@ -1,6 +1,9 @@
 import log from 'sistemium-telegram/services/log';
 import take from 'lodash/take';
 import map from 'lodash/map';
+import find from 'lodash/find';
+import filter from 'lodash/filter';
+import sortBy from 'lodash/sortBy';
 import Markup from 'telegraf/markup';
 
 import * as async from 'sistemium-telegram/services/async';
@@ -8,6 +11,7 @@ import * as async from 'sistemium-telegram/services/async';
 import * as db from '../services/redisDB';
 import * as models from '../services/models';
 import * as imaging from '../services/imaging';
+import api from '../services/siteApi';
 
 const { debug } = log('photo');
 
@@ -35,6 +39,77 @@ export async function listPhotos(ctx) {
 
   await ctx.replyWithHTML('Понял, что нужно показать список картинок, но пока не умею этого');
 
+}
+
+const thumbnailsURL = 'https://s3-eu-west-1.amazonaws.com/vseramki/thumbnails';
+const largesURL = 'https://s3-eu-west-1.amazonaws.com/vseramki/large';
+
+export async function syncSitePhotos(ctx) {
+
+  const pictures = await db.findAll(models.PICTURES_KEY);
+
+  debug('syncSitePhotos got pictures', pictures.length);
+
+  const baguettePictures = sortBy(filter(pictures, isBaguettePicture), 'article');
+
+  const baguetteImages = await api.get('BaguetteImage');
+  debug('syncSitePhotos got baguetteImages', baguetteImages.length);
+
+  const baguettes = await api.get('Baguette');
+  debug('syncSitePhotos got baguettes', baguettes.length);
+
+  const toInsert = filter(baguettePictures.map(picture => {
+    const { article, name, refId } = picture;
+
+    const baguette = find(baguettes, { code: article });
+
+    if (!baguette) {
+      // debug('syncSitePhotos', 'not found for', article);
+      return false;
+    }
+
+    debug('syncSitePhotos', 'found baguette', refId, `"${article}"`, name);
+
+    const thumbnailSrc = `${thumbnailsURL}/${name}`;
+    const existingImage = find(baguetteImages, { thumbnailSrc });
+
+    if (existingImage) {
+      return false;
+    }
+
+    const largeSrc = `${largesURL}/${name}`;
+
+    return {
+      largeSrc,
+      thumbnailSrc,
+      smallSrc: largeSrc,
+      baguetteId: baguette.id,
+    };
+
+  }));
+
+  await ctx.replyWithChatAction('upload_document');
+
+  await async.eachSeriesAsync(
+    toInsert,
+    async baguetteImage => {
+      const { id } = await api.post('BaguetteImage', baguetteImage);
+      debug('syncSitePhotos uploaded BaguetteImage', id);
+    },
+  );
+
+  const reply = [
+    JSON.stringify(toInsert[0], null, 2),
+    `To insert: <b>${toInsert.length}</b>`,
+    `of: <b>${baguettePictures.length}</b>`,
+  ];
+
+  await ctx.replyWithHTML(reply.join(' '));
+
+}
+
+function isBaguettePicture(picture) {
+  return /багет\.[^.]/i.test(picture.name);
 }
 
 export const SHOW_PHOTO_COMMAND = /^\/p_([x]?\d+)[ ]?([a-z]+)?/;
