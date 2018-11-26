@@ -41,8 +41,11 @@ export async function listPhotos(ctx) {
 
 }
 
-const thumbnailsURL = 'https://s3-eu-west-1.amazonaws.com/vseramki/thumbnails';
-const largesURL = 'https://s3-eu-west-1.amazonaws.com/vseramki/large';
+const VR_BUCKET = 'https://s3-eu-west-1.amazonaws.com/vseramki';
+
+const thumbnailsURL = `${VR_BUCKET}/thumbnails`;
+const smallsURL = `${VR_BUCKET}/small`;
+const largesURL = `${VR_BUCKET}/large`;
 
 export async function syncSitePhotos(ctx) {
 
@@ -118,32 +121,40 @@ function imagesToCreate(pictures, articles, images, parentKey) {
 
     debug('imagesToCreate found', refId, `"${code}"`, name);
 
-    const thumbnailSrc = `${thumbnailsURL}/${name}`;
+    const thumbnailSrc = escapeUrl(`${thumbnailsURL}/${name}`);
     const existingImage = find(images, { thumbnailSrc });
 
     if (existingImage) {
       return false;
     }
 
-    const largeSrc = `${largesURL}/${name}`;
+    const largeSrc = escapeUrl(`${largesURL}/${name}`);
 
     return {
       largeSrc,
       thumbnailSrc,
-      smallSrc: largeSrc,
+      smallSrc: escapeUrl(`${smallsURL}/${name}`),
       [parentKey]: article.id,
     };
 
   }));
 
+  function escapeUrl(url) {
+    return url.replace(/\+/g, '%2B');
+  }
+
 }
 
-function isBaguettePicture(picture) {
-  return /багет\.[^.]/i.test(picture.name);
+function ignoredPicture({ name }) {
+  return /\.\./.test(name);
 }
 
-function isFramePicture({ name }) {
-  return !/багет/i.test(name) && !/\.\./.test(name);
+function isBaguettePicture({ name }) {
+  return !/РП|РД/i.test(name) && !ignoredPicture({ name });
+}
+
+function isFramePicture(picture) {
+  return !isBaguettePicture(picture) && !ignoredPicture(picture);
 }
 
 export const SHOW_PHOTO_COMMAND = /^\/p_([x]?\d+)[ ]?([a-z]+)?/;
