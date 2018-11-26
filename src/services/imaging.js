@@ -105,6 +105,10 @@ export async function streamMetadata(readableStream) {
 
 }
 
+const THUMB_SIZE = 150;
+const SMALL_SIZE = 350;
+const LARGE_SIZE = 2000;
+
 export async function saveImageBufferToS3(buffer, nameOriginal) {
 
   const name = nameOriginal.replace(/\.[^.]+$/, '.png');
@@ -113,8 +117,12 @@ export async function saveImageBufferToS3(buffer, nameOriginal) {
     .background('#ffffff')
     .flatten();
 
+  /*
+  Thumb
+   */
+
   const thumbnail = img.clone()
-    .resize(150, 150).max()
+    .resize(THUMB_SIZE, THUMB_SIZE).max()
     .png();
 
   let Body = await thumbnail.toBuffer();
@@ -127,7 +135,29 @@ export async function saveImageBufferToS3(buffer, nameOriginal) {
     ContentType: 'image/png',
   });
 
-  const large = img.resize(2000, 2000).max()
+  /*
+  Small
+   */
+
+  const small = img.clone()
+    .resize(SMALL_SIZE, SMALL_SIZE).max()
+    .png();
+
+  Body = await small.toBuffer();
+
+  debug('saveImageBufferToS3 small size:', Body.length);
+
+  await uploadBufferToS3Key({
+    Body,
+    Key: `small/${name}`,
+    ContentType: 'image/png',
+  });
+
+  /*
+  Large
+   */
+
+  const large = img.resize(LARGE_SIZE, LARGE_SIZE).max()
     .png();
 
   Body = await large.toBuffer();
