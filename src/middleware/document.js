@@ -2,12 +2,21 @@ import log from 'sistemium-telegram/services/log';
 
 import Markup from 'telegraf/markup';
 import map from 'lodash/map';
+import bot from 'sistemium-telegram/services/bot';
+import axios from 'axios';
+import xlsx from 'node-xlsx';
 
 import * as db from '../services/redisDB';
 import * as models from '../services/models';
+import parseStockFile from '../services/stock';
+
 import { importFramesFromFile, importImageFile } from './frames';
 
 const { debug } = log('document');
+
+const XLS_TYPE_FRAMES = 'XLS_TYPE_FRAMES';
+const XLS_TYPE_STOCK = 'XLS_TYPE_STOCK';
+const stockRe = /Остатки товаров на складах/;
 
 /**
  * Document upload handler
@@ -31,7 +40,7 @@ export async function onDocument(ctx) {
 
   switch (mime) {
     case 'application/x-msexcel':
-      await importFramesFromFile(ctx, fileId);
+      await importXLS(ctx, fileId);
       break;
     case 'image/png':
     case 'x-tiff':
@@ -46,6 +55,62 @@ export async function onDocument(ctx) {
 
 
 }
+
+
+function detectFileType(xls) {
+
+  const sheet = xls[0].data;
+  const [titles] = sheet;
+
+  if (stockRe.test(titles[0])) {
+    return XLS_TYPE_STOCK;
+  }
+
+  return XLS_TYPE_FRAMES;
+
+}
+
+
+async function getFile(url) {
+
+  const response = await axios({
+    method: 'get',
+    responseType: 'arraybuffer',
+    url,
+    headers: {
+      'Content-Type': 'application/x-msexcel',
+    },
+  });
+
+  return xlsx.parse(response.data, { type: 'buffer' });
+
+}
+
+
+async function importXLS(ctx, fileId) {
+
+  const url = await bot.telegram.getFileLink(fileId);
+  const xls = await getFile(url);
+
+  switch (detectFileType(xls)) {
+
+    case XLS_TYPE_FRAMES: {
+      return importFramesFromFile(ctx, xls);
+    }
+
+    case XLS_TYPE_STOCK: {
+      const stock = parseStockFile(xls[0]);
+      return ctx.replyWithHTML(`Импортировано <b>${stock.length}</b>`);
+    }
+
+    default: {
+      return ctx.replyWithHTML('Не удалось распознать содержимое файла');
+    }
+
+  }
+
+}
+
 
 export const SHOW_FILE_COMMAND = /^\/f_([x]?\d+)[ ]?([a-z]+)?/;
 
@@ -69,7 +134,8 @@ export async function listFiles(ctx) {
   const files = await db.findAll(models.FILES_KEY);
 
   if (!files) {
-    await ctx.reply('Не помню, чтобы мне присылали какие-то файлы. Пришли что-нибудь и я запомню.');
+    const reply = 'Не помню, чтобы мне присылали какие-то файлы. Пришли что-нибудь и я запомню.';
+    await ctx.reply(reply);
     return;
   }
 

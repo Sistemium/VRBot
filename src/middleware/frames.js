@@ -4,8 +4,6 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import map from 'lodash/map';
 import trim from 'lodash/trim';
 import filter from 'lodash/filter';
-import axios from 'axios';
-import xlsx from 'node-xlsx';
 
 import importFrames from '../config/importFrames';
 import * as db from '../services/redisDB';
@@ -213,30 +211,10 @@ export async function importImageFile(ctx, file) {
 
 }
 
-export async function importFramesFromFile(ctx, fileId) {
-
-  const url = await bot.telegram.getFileLink(fileId);
-  const xls = await getFile(url);
+export async function importFramesFromFile(ctx, xls) {
 
   const data = parseFramesFile(xls);
-
   await db.saveMany(models.FRAMES_KEY, data);
-
   await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> записей`);
-
-}
-
-async function getFile(url) {
-
-  const response = await axios({
-    method: 'get',
-    responseType: 'arraybuffer',
-    url,
-    headers: {
-      'Content-Type': 'application/x-msexcel',
-    },
-  });
-
-  return xlsx.parse(response.data, { type: 'buffer' });
 
 }
