@@ -145,8 +145,8 @@ function imagesToCreate(pictures, articles, images, parentKey) {
 
 }
 
-function ignoredPicture({ name }) {
-  return /\.\./.test(name);
+function ignoredPicture() {
+  return false; // /\.\./.test(name);
 }
 
 function isBaguettePicture({ name }) {

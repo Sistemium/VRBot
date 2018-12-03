@@ -27,7 +27,7 @@ export async function onMessage(ctx) {
 
   debug(`#${messageId}`, text || 'not a text message');
 
-  if (!text) {
+  if (!text || /\//.test(text)) {
     await ctx.reply(process.env.PHRASE_NOT_IMPLEMENTED);
     return;
   }
