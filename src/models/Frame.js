@@ -1,0 +1,70 @@
+import { Schema, model } from 'mongoose';
+import omit from 'lodash/omit';
+// import { getId } from 'sistemium-telegram/services/redis';
+
+const schema = new Schema({
+  id: String,
+  refId: Number,
+  article: String,
+  name: String,
+  parent: String,
+  size: String,
+  packageRel: Number,
+  weight: Number,
+  material: String,
+  screen: String,
+  back: String,
+  ts: Date,
+  cts: Date,
+}, {
+  collection: 'Frame',
+});
+
+export default model('Frame', schema);
+
+// export const FRAMES_KEY = 'frames';
+
+schema.statics.merge = merge;
+
+async function merge(items) {
+
+  const cts = new Date();
+
+  const ops = items.map(item => {
+
+    const $set = omit(item, ['id', 'ts', 'cts', 'refId']);
+
+    return {
+      updateOne: {
+        filter: { id: item.id },
+        update: {
+          $set,
+          $currentDate: { ts: true },
+          $setOnInsert: { cts },
+        },
+        upsert: true,
+      },
+    };
+
+  });
+
+  return this.bulkWrite(ops, { ordered: false });
+
+}
+
+/*
+
+    "id" : "50020",
+    "refId" : 1088,
+    "article" : "281РП2130",
+    "name" : "Рамка пластиковая  21*30  281 молоко  /25/  L20",
+    "parent" : "Багет 200-я серия",
+    "size" : "",
+    "packageRel" : 25,
+    "weight" : 0.468,
+    "material" : "Пластик",
+    "screen" : "",
+    "back" : "",
+    "ts" : "2018-09-29T08:34:45.941Z"
+
+ */

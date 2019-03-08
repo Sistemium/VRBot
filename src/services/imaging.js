@@ -4,8 +4,9 @@ import axios from 'axios';
 import { whilstAsync } from 'sistemium-telegram/services/async';
 import sharp from 'sharp';
 import filter from 'lodash/filter';
-import * as db from './redisDB';
-import * as models from './models';
+import { getId } from 'sistemium-telegram/services/redis';
+
+import Picture, { PICTURES_KEY } from '../models/Picture';
 
 const { debug } = log('frames');
 
@@ -192,7 +193,7 @@ export async function saveImageBuffer(ctx, source, id, props) {
 
   const { name } = props;
   const [, article] = name.match(/([^_.]+).+(png|tif[f]?|jp[e]?g)$/i);
-  const data = { article, ...props };
+  const picture = new Picture({ article, ...props, id });
 
   await ctx.replyWithChatAction('upload_photo');
 
@@ -204,11 +205,13 @@ export async function saveImageBuffer(ctx, source, id, props) {
 
   const msg = await ctx.replyWithPhoto({ source: onS3Large });
 
-  data.images = msg.photo;
+  picture.images = msg.photo;
+  picture.id = id;
+  picture.refId = await getId(PICTURES_KEY);
 
-  const file = await db.save(models.PICTURES_KEY, id, data);
+  await picture.save();
 
-  const reply = `Запомнил картинку /p_${file.refId} с артикулом <b>${article}</b>`;
+  const reply = `Запомнил картинку /p_${picture.refId} с артикулом <b>${article}</b>`;
   await ctx.replyWithHTML(reply);
 
 }

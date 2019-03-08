@@ -3,9 +3,13 @@ import log from 'sistemium-telegram/services/log';
 import session from 'sistemium-telegram/services/session';
 import 'sistemium-telegram/config/aws';
 
+import * as mongo from './models';
+
 const { error } = log('index');
 
 bot.startPolling();
+
+mongo.connect();
 
 bot.use(exceptionHandler);
 bot.use(session({ botId: BOT_ID })

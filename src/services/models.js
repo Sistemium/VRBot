@@ -1,3 +1,1 @@
-export const FRAMES_KEY = 'frames';
-export const PICTURES_KEY = 'pictures';
-export const FILES_KEY = 'files';
+export const FILES_KEY = 'files'; //eslint-disable-line

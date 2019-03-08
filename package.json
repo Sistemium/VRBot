@@ -17,9 +17,10 @@
     "axios": "^0.18.0",
     "date-fns": "v2.0.0-alpha.8",
     "lodash": "^4.17.10",
+    "mongoose": "^5.4.17",
     "node-xlsx": "^0.12.1",
     "sharp": "^0.20.8",
-    "sistemium-telegram": "^1.2.2",
+    "sistemium-telegram": "^1.2.9",
     "telegraf": "^3.24.0"
   },
   "devDependencies": {

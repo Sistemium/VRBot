@@ -8,10 +8,10 @@ import Markup from 'telegraf/markup';
 
 import * as async from 'sistemium-telegram/services/async';
 
-import * as db from '../services/redisDB';
-import * as models from '../services/models';
 import * as imaging from '../services/imaging';
 import api from '../services/siteApi';
+
+import Picture from '../models/Picture';
 
 const { debug } = log('photo');
 
@@ -51,7 +51,7 @@ export async function syncSitePhotos(ctx) {
 
   await ctx.replyWithChatAction('typing');
 
-  const pictures = await db.findAll(models.PICTURES_KEY);
+  const pictures = await Picture.find();
   debug('syncSitePhotos got pictures', pictures.length);
   const baguettePictures = sortBy(filter(pictures, isBaguettePicture), 'article');
 
@@ -78,7 +78,7 @@ export async function syncSitePhotos(ctx) {
     `of: <b>${baguettePictures.length}</b>`,
   ].join(' '));
 
-  await ctx.replyWithChatAction('typing');
+  await ctx.replyWithChatAction('Gtyping');
 
   const framePictures = sortBy(filter(pictures, isFramePicture), 'article');
 
@@ -177,7 +177,7 @@ export async function showPhoto(ctx) {
 
   debug(command, refId, format);
 
-  const item = await db.findByRefId(models.PICTURES_KEY, refId);
+  const item = await Picture.findOne({ refId });
 
   if (!item) {
     await ctx.replyWithHTML(`Не нашел картинки с номером <code>${refId}</code>`);
@@ -189,7 +189,7 @@ export async function showPhoto(ctx) {
     return;
   }
 
-  const reply = photoView(item);
+  const reply = photoView(item.toObject());
   const keyBoard = Markup.inlineKeyboard([
     Markup.callbackButton('️Удалить', `deletePhoto#${item.id}`),
   ]);
@@ -227,7 +227,7 @@ export async function deletePhoto(ctx) {
   debug(action, fileId);
   // debug(JSON.stringify(callbackQuery));
 
-  const file = await db.find(models.PICTURES_KEY, fileId);
+  const file = await Picture.findOne({ id: fileId });
 
   await ctx.deleteMessage(callbackQuery.message_id);
 
@@ -236,7 +236,7 @@ export async function deletePhoto(ctx) {
     return;
   }
 
-  await db.destroy(models.PICTURES_KEY, fileId);
+  await Picture.deleteOne({ id: fileId });
 
   await ctx.replyWithHTML(`Удалил картинку №${file.refId} <b>${file.name}</b>`);
 
@@ -303,7 +303,7 @@ export async function importPhotos(ctx) {
 
     const { Key, ETag } = s3Object;
     const id = idFromETag(ETag);
-    const existing = await db.find(models.PICTURES_KEY, id);
+    const existing = await Picture.findOne({ id });
 
     if (existing) {
       debug('importPhotos already imported:', Key, ETag);

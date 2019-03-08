@@ -1,15 +1,17 @@
 import log from 'sistemium-telegram/services/log';
 import bot from 'sistemium-telegram/services/bot';
+
 import escapeRegExp from 'lodash/escapeRegExp';
 import map from 'lodash/map';
 import trim from 'lodash/trim';
 import filter from 'lodash/filter';
 
 import importFrames from '../config/importFrames';
-import * as db from '../services/redisDB';
-import * as models from '../services/models';
 import * as imaging from '../services/imaging';
 import { countableState } from '../services/lang';
+
+import Picture from '../models/Picture';
+import Frame from '../models/Frame';
 
 const { debug } = log('frames');
 
@@ -28,7 +30,7 @@ export async function showFrame(ctx) {
 
   debug(command, refId, format);
 
-  const frame = await db.findByRefId(models.FRAMES_KEY, refId);
+  const frame = await Frame.findOne({ refId });
 
   if (!frame) {
     await ctx.replyWithHTML(`Не нашел товара с кодом <code>${refId}</code>`);
@@ -42,8 +44,9 @@ export async function showFrame(ctx) {
 
   const reply = frameView(frame);
 
-  const pictures = await db.findAll(models.PICTURES_KEY) || [];
-  const matching = filter(pictures, matchesArticle);
+  const picturesFilter = matchesArticle();
+
+  const matching = picturesFilter ? await Picture.find(picturesFilter) : [];
 
   if (!matching.length) {
     reply.push('\nПодходящих картинок не нашел');
@@ -62,12 +65,12 @@ export async function showFrame(ctx) {
     await ctx.replyWithMediaGroup(mediaGroup);
   }
 
-  function matchesArticle({ article }) {
+  function matchesArticle() {
     if (!frame.article) {
       return false;
     }
     const [, bgArticle] = frame.article.match(/(.+)(РД|РП)\d+/i) || [];
-    return article === frame.article || article === bgArticle;
+    return { article: { $in: [frame.article, bgArticle] } };
   }
 
   function listPhotos(photo) {
@@ -105,16 +108,20 @@ export function displayFrame({ refId, name }) {
 
 export async function searchFrames(text) {
 
-  const frames = await db.findAll(models.FRAMES_KEY);
-
   const re = new RegExp(escapeRegExp(text), 'i');
   const codeRe = new RegExp(`^${escapeRegExp(text)}`, 'i');
 
-  return filter(frames, searcher);
+  return Frame.find({
+    $or: [
+      { id: { $regex: codeRe } },
+      { article: { $regex: codeRe } },
+      { name: { $regex: re } },
+    ],
+  });
 
-  function searcher({ name, article, id }) {
-    return codeRe.test(id) || codeRe.test(article) || re.test(name);
-  }
+  // function searcher({ name, article, id }) {
+  //   return codeRe.test(id) || codeRe.test(article) || re.test(name);
+  // }
 
 }
 
@@ -164,18 +171,18 @@ export function frameCount(count) {
 export async function importPhoto(ctx) {
 
   const { match } = ctx;
-  const [command, idRef] = match;
+  const [command, refId] = match;
 
-  debug(command, idRef);
+  debug(command, refId);
 
-  if (!idRef) {
+  if (!refId) {
     throw new Error('Не указан номер файла');
   }
 
-  const file = await db.findByRefId(models.FILES_KEY, idRef);
+  const file = await Frame.findOne({ refId });
 
   if (!file) {
-    throw new Error(`Не нашел файла с номером ${idRef}`);
+    throw new Error(`Не нашел файла с номером ${refId}`);
   }
 
   await importImageFile(ctx, file);
@@ -214,7 +221,9 @@ export async function importImageFile(ctx, file) {
 export async function importFramesFromFile(ctx, xls) {
 
   const data = parseFramesFile(xls);
-  await db.saveMany(models.FRAMES_KEY, data);
+
+  await Frame.merge(data);
+
   await ctx.replyWithHTML(`Имрортировано <b>${data.length}</b> записей`);
 
 }
