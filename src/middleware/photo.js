@@ -78,7 +78,7 @@ export async function syncSitePhotos(ctx) {
     `of: <b>${baguettePictures.length}</b>`,
   ].join(' '));
 
-  await ctx.replyWithChatAction('Gtyping');
+  await ctx.replyWithChatAction('typing');
 
   const framePictures = sortBy(filter(pictures, isFramePicture), 'article');
 
