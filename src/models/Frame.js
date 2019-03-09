@@ -24,10 +24,11 @@ const schema = new Schema({
   cts: Date,
 }, { collection });
 
+schema.statics.merge = merge;
+
+
 export default model(collection, schema);
 
-
-schema.statics.merge = merge;
 
 async function merge(items) {
 
