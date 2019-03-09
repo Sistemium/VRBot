@@ -6,8 +6,8 @@ import bot from 'sistemium-telegram/services/bot';
 import axios from 'axios';
 import xlsx from 'node-xlsx';
 
-import * as db from '../services/redisDB';
-import * as models from '../services/models';
+import File from '../models/File';
+
 import parseStockFile from '../services/stock';
 
 import { importFramesFromFile, importImageFile } from './frames';
@@ -36,7 +36,7 @@ export async function onDocument(ctx) {
   await ctx.replyWithHTML(`Получил файл <b>${name}</b>, попробую его изучить!`);
   await ctx.replyWithChatAction('typing');
 
-  const file = await db.save(models.FILES_KEY, fileId, document);
+  const file = await new File({ id: fileId, ...document }).save();
 
   switch (mime) {
     case 'application/x-msexcel':
@@ -131,7 +131,7 @@ export async function listFiles(ctx) {
 
   debug(command, param);
 
-  const files = await db.findAll(models.FILES_KEY);
+  const files = await File.find();
 
   if (!files) {
     const reply = 'Не помню, чтобы мне присылали какие-то файлы. Пришли что-нибудь и я запомню.';
@@ -180,7 +180,7 @@ export async function deleteFile(ctx) {
   debug(action, fileId);
   // debug(JSON.stringify(callbackQuery));
 
-  const file = await db.find(models.FILES_KEY, fileId);
+  const file = await File.findOne({ id: fileId });
 
   await ctx.deleteMessage(callbackQuery.message_id);
 
@@ -189,7 +189,7 @@ export async function deleteFile(ctx) {
     return;
   }
 
-  await db.destroy(models.FILES_KEY, fileId);
+  await file.delete();
 
   await ctx.replyWithHTML(`Удалил файл №${file.refId} <b>${file.file_name}</b>`);
 
@@ -208,7 +208,7 @@ export async function showFile(ctx) {
 
   debug(command, refId, format);
 
-  const item = await db.findByRefId(models.FILES_KEY, refId);
+  const item = await File.findOne({ refId });
 
   if (!item) {
     await ctx.replyWithHTML(`Не нашел файла с номером <code>${refId}</code>`);
@@ -216,13 +216,13 @@ export async function showFile(ctx) {
   }
 
   if (format === 'plain') {
-    await ctx.reply(`${JSON.stringify(item, null, 2)}`);
+    await ctx.reply(`${JSON.stringify(item.toObject(), null, 2)}`);
     return;
   }
 
   // const url = await bot.telegram.getFileLink(item.file_id);
 
-  const reply = fileView(item);
+  const reply = fileView(item.toObject());
   const keyBoard = Markup.inlineKeyboard([
     Markup.callbackButton('️Удалить', `deleteFile#${item.id}`),
     Markup.callbackButton('Скачать', `downloadFile#${item.file_id}`),

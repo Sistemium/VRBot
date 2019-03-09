@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose';
 import omit from 'lodash/omit';
-// import { getId } from 'sistemium-telegram/services/redis';
+import { mapSeriesAsync } from 'sistemium-telegram/services/async';
+
+import { getId } from 'sistemium-telegram/services/redis';
+
+const FRAMES_KEY = 'frames';
 
 const schema = new Schema({
   id: String,
@@ -17,12 +21,11 @@ const schema = new Schema({
   ts: Date,
   cts: Date,
 }, {
-  collection: 'Frame',
+  collection: FRAMES_KEY,
 });
 
-export default model('Frame', schema);
+export default model(FRAMES_KEY, schema);
 
-// export const FRAMES_KEY = 'frames';
 
 schema.statics.merge = merge;
 
@@ -30,9 +33,13 @@ async function merge(items) {
 
   const cts = new Date();
 
-  const ops = items.map(item => {
+  const ops = await mapSeriesAsync(items, async item => {
 
     const $set = omit(item, ['id', 'ts', 'cts', 'refId']);
+
+    const exists = await this.findOne({ id: item.id });
+
+    const refId = exists ? exists.refId : await getId(FRAMES_KEY);
 
     return {
       updateOne: {
@@ -40,7 +47,7 @@ async function merge(items) {
         update: {
           $set,
           $currentDate: { ts: true },
-          $setOnInsert: { cts },
+          $setOnInsert: { cts, refId },
         },
         upsert: true,
       },
