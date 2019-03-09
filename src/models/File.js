@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose';
 
-const MODEL = 'File';
+const collection = 'File';
 
 const schema = new Schema({
   id: String,
@@ -11,11 +11,9 @@ const schema = new Schema({
   file_id: String,
   file_size: Number,
   ts: Date,
-}, {
-  collection: MODEL,
-});
+}, { collection });
 
-export default model(MODEL, schema);
+export default model(collection, schema);
 
 /*
 {

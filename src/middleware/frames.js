@@ -111,13 +111,13 @@ export async function searchFrames(text) {
   const re = new RegExp(escapeRegExp(text), 'i');
   const codeRe = new RegExp(`^${escapeRegExp(text)}`, 'i');
 
-  return Frame.find({
-    $or: [
-      { id: { $regex: codeRe } },
-      { article: { $regex: codeRe } },
-      { name: { $regex: re } },
-    ],
-  });
+  debug('searchFrames', re);
+
+  return Frame.find().or([
+    { id: { $regex: codeRe } },
+    { article: { $regex: codeRe } },
+    { name: { $regex: re } },
+  ]);
 
   // function searcher({ name, article, id }) {
   //   return codeRe.test(id) || codeRe.test(article) || re.test(name);

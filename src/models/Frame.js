@@ -6,6 +6,8 @@ import { getId } from 'sistemium-telegram/services/redis';
 
 const FRAMES_KEY = 'frames';
 
+const collection = 'Frame';
+
 const schema = new Schema({
   id: String,
   refId: Number,
@@ -20,11 +22,9 @@ const schema = new Schema({
   back: String,
   ts: Date,
   cts: Date,
-}, {
-  collection: FRAMES_KEY,
-});
+}, { collection });
 
-export default model(FRAMES_KEY, schema);
+export default model(collection, schema);
 
 
 schema.statics.merge = merge;
