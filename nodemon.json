@@ -2,14 +2,18 @@
   "env": {
     "DEBUG": "stm:*",
     "PHRASE_NOT_IMPLEMENTED": "Я пока не понимаю такие команды",
+    "MONGO_URL": "mng2.sistemium.net:27017/VR",
+    "REDIS_HOST": "redis1.sistemium.net",
+    "REDIS_PORT": 6379,
+    "API_URL": "https://api.sistemium.com/v4d/vr",
     "REDIS_DB": 9,
     "BOT_USER_NAME": "VseRamkiBot",
     "DEBUG_NAMESPACE": "stm:bot",
     "ERROR_NAMESPACE": "stm:bot:error",
-    "API_URL": "https://api.sistemium.com/v4d/vr",
     "GROUP_CHAT_ID": "",
-    "CREATE_NEWS": "",
+    "REST_PORT": "9300",
     "NOTIFY_HOUR_MIN": 8,
     "NOTIFY_HOUR_MAX": 20
-  }
+  },
+  "ignore": ["static"]
 }
