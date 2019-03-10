@@ -6,8 +6,8 @@
   "scripts": {
     "lint": "eslint src",
     "test": "npm run lint",
-    "babel-node": "babel-node",
-    "start": "nodemon --exec 'npm run lint && babel-node' -- src/index.js",
+    "start": "nodemon --exec 'npm run lint && node -r esm' -- src/index.js",
+    "api": "nodemon --exec 'npm run lint && node -r esm' -- src/api",
     "pkg": "cp package.json dist",
     "build": "npm run lint && rm -rf dist && babel src -d dist && npm run pkg"
   },
@@ -16,6 +16,12 @@
     "aws-sdk": "^2.321.0",
     "axios": "^0.18.0",
     "date-fns": "v2.0.0-alpha.8",
+    "esm": "^3.2.14",
+    "koa": "^2.7.0",
+    "koa-body": "^4.1.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-morgan": "^1.0.1",
+    "koa-router": "^7.4.0",
     "lodash": "^4.17.10",
     "mongoose": "^5.4.17",
     "node-xlsx": "^0.12.1",
@@ -24,9 +30,6 @@
     "telegraf": "^3.24.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^13.0.0",
     "eslint-plugin-import": "^2.13.0",
