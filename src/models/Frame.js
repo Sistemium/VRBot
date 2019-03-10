@@ -1,33 +1,31 @@
-import { Schema, model } from 'mongoose';
 import omit from 'lodash/omit';
-import { mapSeriesAsync } from 'sistemium-telegram/services/async';
 
+import { mapSeriesAsync } from 'sistemium-telegram/services/async';
 import { getId } from 'sistemium-telegram/services/redis';
+
+import model from './schema';
 
 const FRAMES_KEY = 'frames';
 
-const collection = 'Frame';
-
-const schema = new Schema({
-  id: String,
-  refId: Number,
-  article: String,
-  name: String,
-  parent: String,
-  size: String,
-  packageRel: Number,
-  weight: Number,
-  material: String,
-  screen: String,
-  back: String,
-  ts: Date,
-  cts: Date,
-}, { collection });
-
-schema.statics.merge = merge;
-
-
-export default model(collection, schema);
+export default model({
+  collection: 'Frame',
+  schema: {
+    id: String,
+    refId: Number,
+    article: String,
+    name: String,
+    parent: String,
+    size: String,
+    packageRel: Number,
+    weight: Number,
+    material: String,
+    screen: String,
+    back: String,
+    ts: Date,
+    cts: Date,
+  },
+  statics: { merge },
+});
 
 
 async function merge(items) {
