@@ -3,7 +3,7 @@ import omit from 'lodash/omit';
 import { mapSeriesAsync } from 'sistemium-telegram/services/async';
 import { getId } from 'sistemium-telegram/services/redis';
 
-import model from './schema';
+import model from '../lib/schema';
 
 const FRAMES_KEY = 'frames';
 

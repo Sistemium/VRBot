@@ -3,7 +3,7 @@ import log from 'sistemium-telegram/services/log';
 import session from 'sistemium-telegram/services/session';
 import 'sistemium-telegram/config/aws';
 
-import * as mongo from './models';
+import * as mongo from './lib/mongo';
 
 const { error } = log('index');
 

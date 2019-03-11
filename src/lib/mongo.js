@@ -12,12 +12,13 @@ if (process.env.MONGOOSE_DEBUG) {
 export async function connect() {
   const connected = await mongoose.connect(`mongodb://${mongoUrl}`, {
     useNewUrlParser: true,
-    // useCreateIndex: true,
+    useCreateIndex: true,
   });
   debug('connected', mongoUrl);
   return connected;
 }
 
 export async function disconnect() {
+  debug('disconnected', mongoUrl);
   return mongoose.disconnect();
 }

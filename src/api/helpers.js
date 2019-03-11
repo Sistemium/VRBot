@@ -18,8 +18,8 @@ export function getHandler(model) {
       ctx.body = await model.findOne({ id });
 
     } catch (err) {
-      ctx.throw(500);
       error(err.name, err.message);
+      ctx.throw(500);
     }
 
   };
@@ -38,8 +38,8 @@ export function getManyHandler(model) {
       ctx.body = await model.find(filter).limit(parseInt(pageSize, 0));
 
     } catch (err) {
-      ctx.throw(500);
       error(err.name, err.message);
+      ctx.throw(500);
     }
 
   };

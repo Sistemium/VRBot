@@ -2,7 +2,8 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import log from 'sistemium-telegram/services/log';
 import morgan from 'koa-morgan';
-import * as mongo from '../models';
+import cors from '@koa/cors';
+import * as mongo from '../lib/mongo';
 
 import api from './routes';
 // import auth from './api/auth';
@@ -14,6 +15,8 @@ const app = new Koa();
 
 api.prefix('/api');
 
+const corsOptions = { origin: '*' };
+
 debug('starting on port', REST_PORT);
 
 mongo.connect()
@@ -24,6 +27,7 @@ mongo.connect()
   .catch(e => error('mongo connect error', e.message));
 
 app
+  .use(cors(corsOptions))
   .use(morgan(':status :method :url :res[content-length] - :response-time ms'))
   // .use(auth)
   .use(bodyParser())

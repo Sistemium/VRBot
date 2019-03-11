@@ -9,9 +9,10 @@
     "start": "nodemon --exec 'npm run lint && node -r esm' -- src/index.js",
     "api": "nodemon --exec 'npm run lint && node -r esm' -- src/api",
     "pkg": "cp package.json dist",
-    "build": "npm run lint && rm -rf dist && babel src -d dist && npm run pkg"
+    "build": "npm run lint && rm -rf dist && cp -r src dist && npm run pkg"
   },
   "dependencies": {
+    "@koa/cors": "^2.2.3",
     "async": "^2.6.1",
     "aws-sdk": "^2.321.0",
     "axios": "^0.18.0",
