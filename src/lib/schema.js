@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import each from 'lodash/each';
+import isFunction from 'lodash/isFunction';
 
 export default function (config) {
 
@@ -8,14 +9,20 @@ export default function (config) {
     schema: schemaConfig,
     statics = {},
     indexes = [],
+    onSchema,
   } = config;
 
   Object.assign(schemaConfig, {
     ts: Date,
     id: String,
+    cts: Date,
   });
 
   const schema = new Schema(schemaConfig, { collection });
+
+  if (isFunction(onSchema)) {
+    onSchema(schema);
+  }
 
   /* eslint-disable no-param-reassign */
   /* eslint-disable no-underscore-dangle */

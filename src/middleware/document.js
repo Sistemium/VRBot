@@ -43,7 +43,7 @@ export async function onDocument(ctx) {
       await importXLS(ctx, fileId);
       break;
     case 'image/png':
-    case 'x-tiff':
+    case 'image/x-tiff':
       await importImageFile(ctx, file);
       break;
     default:

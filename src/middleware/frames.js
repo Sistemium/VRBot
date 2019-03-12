@@ -12,6 +12,7 @@ import { countableState } from '../services/lang';
 
 import Picture from '../models/Picture';
 import Frame from '../models/Frame';
+import File from '../models/File';
 
 const { debug } = log('frames');
 
@@ -179,7 +180,7 @@ export async function importPhoto(ctx) {
     throw new Error('Не указан номер файла');
   }
 
-  const file = await Frame.findOne({ refId });
+  const file = await File.findOne({ refId });
 
   if (!file) {
     throw new Error(`Не нашел файла с номером ${refId}`);
@@ -189,14 +190,18 @@ export async function importPhoto(ctx) {
 
 }
 
+const importableImageMimeRe = /^image\/(png|x-tiff)$/;
+
 export async function importImageFile(ctx, file) {
 
   const {
     file_name: name,
-    thumb: { file_id: thumbId },
+    thumb,
     file_id: largeId,
     mime_type: mimeType,
   } = file;
+
+  const { file_id: thumbId } = thumb || {};
 
   debug(name, mimeType);
 
@@ -206,6 +211,11 @@ export async function importImageFile(ctx, file) {
     name,
   };
 
+  if (!mimeType.match(importableImageMimeRe)) {
+    await ctx.replyWithHTML(`Не могу обработать картинку с типом файла <code>${mimeType}</code>`);
+    return;
+  }
+
   await ctx.replyWithChatAction('upload_photo');
 
   debug('importImageFile:', largeId);
@@ -214,7 +224,7 @@ export async function importImageFile(ctx, file) {
 
   const source = await imaging.getImageBuffer(url, mimeType);
 
-  await imaging.saveImageBuffer(ctx, source, thumbId, data);
+  await imaging.saveImageBuffer(ctx, source, largeId || thumbId, data);
 
 }
 

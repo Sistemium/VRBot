@@ -1,10 +1,14 @@
 import omit from 'lodash/omit';
+import map from 'lodash/map';
+import keyBy from 'lodash/keyBy';
+import log from 'sistemium-telegram/services/log';
 
 import { mapSeriesAsync } from 'sistemium-telegram/services/async';
 import { getId } from 'sistemium-telegram/services/redis';
 
 import model from '../lib/schema';
 
+const { debug } = log('Frame');
 const FRAMES_KEY = 'frames';
 
 export default model({
@@ -32,11 +36,18 @@ async function merge(items) {
 
   const cts = new Date();
 
+  const pipeline = [{ $match: { id: { $in: map(items, 'id') } } }];
+
+  const existing = await this.aggregate(pipeline).project({ id: 1, refId: 1 });
+  const existingKeys = keyBy(existing, 'id');
+
+  debug('found:', existing.length);
+
   const ops = await mapSeriesAsync(items, async item => {
 
     const $set = omit(item, ['id', 'ts', 'cts', 'refId']);
 
-    const exists = await this.findOne({ id: item.id });
+    const exists = existingKeys[item.id];
 
     const refId = exists ? exists.refId : await getId(FRAMES_KEY);
 
@@ -54,7 +65,15 @@ async function merge(items) {
 
   });
 
-  return this.bulkWrite(ops, { ordered: false });
+  debug('ops:', ops.length);
+
+  const res = await this.bulkWrite(ops, { ordered: false });
+
+  const { nUpserted = 0, nModified = 0 } = res.result;
+
+  debug('done:', nUpserted, '+', nModified);
+
+  return res;
 
 }
 
