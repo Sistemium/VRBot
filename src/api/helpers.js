@@ -29,10 +29,16 @@ export function getHandler(model) {
 export function getManyHandler(model) {
   return async ctx => {
 
-    const { header: { [PAGE_SIZE_HEADER]: pageSize = '10' }, path, query } = ctx;
+    const { path, query, header } = ctx;
     const filters = mapValues(pick(query, Object.keys(model.schema.tree)), x => x || null);
 
+    let { [`${PAGE_SIZE_HEADER}:`]: pageSize } = query;
+
     debug('GET', path, filters);
+
+    if (!pageSize) {
+      pageSize = header[PAGE_SIZE_HEADER] || '10';
+    }
 
     try {
 
