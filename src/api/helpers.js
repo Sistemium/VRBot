@@ -24,6 +24,7 @@ export function getHandler(model) {
     }
 
   };
+
 }
 
 export function getManyHandler(model) {
