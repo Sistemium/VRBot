@@ -6,7 +6,7 @@ import cors from '@koa/cors';
 import * as mongo from '../lib/mongo';
 
 import api from './routes';
-// import auth from './api/auth';
+import auth from './auth';
 
 const { debug, error } = log('rest');
 const { REST_PORT } = process.env;
@@ -29,7 +29,7 @@ mongo.connect()
 app
   .use(cors(corsOptions))
   .use(morgan(':status :method :url :res[content-length] - :response-time ms'))
-  // .use(auth)
+  .use(auth)
   .use(bodyParser())
   .use(api.routes())
   .use(api.allowedMethods())

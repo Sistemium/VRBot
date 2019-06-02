@@ -1,5 +1,7 @@
 import log from 'sistemium-telegram/services/log';
 import pick from 'lodash/pick';
+import map from 'lodash/map';
+import filter from 'lodash/filter';
 import mapValues from 'lodash/mapValues';
 
 const { debug, error } = log('rest');
@@ -43,7 +45,15 @@ export function getManyHandler(model) {
 
     try {
 
-      ctx.body = await model.find(filters).limit(parseInt(pageSize, 0));
+      const predicateFilter = checkPredicates(ctx, model.predicates);
+
+      debug('getManyHandler:filters', predicateFilter);
+
+      const modelQuery = model.find(filters);
+
+      predicateFilter.forEach(f => modelQuery.where(f));
+
+      ctx.body = await modelQuery.limit(parseInt(pageSize, 0));
 
     } catch (err) {
       error(err.name, err.message);
@@ -51,4 +61,10 @@ export function getManyHandler(model) {
     }
 
   };
+}
+
+function checkPredicates(ctx, predicates) {
+
+  return filter(map(predicates, predicate => predicate(ctx)));
+
 }

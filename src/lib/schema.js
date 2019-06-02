@@ -10,6 +10,7 @@ export default function (config) {
     statics = {},
     indexes = [],
     onSchema,
+    predicates,
   } = config;
 
   Object.assign(schemaConfig, {
@@ -39,6 +40,10 @@ export default function (config) {
 
   indexes.push({ ts: -1 });
   indexes.push({ id: 1 });
+
+  if (predicates) {
+    statics.predicates = predicates;
+  }
 
   each(indexes, index => schema.index(index));
 

@@ -5,18 +5,16 @@ const { debug, error } = log('api');
 
 export default async function (ctx, next) {
 
-  const { header: { authorization }, assert, state } = ctx;
+  const { header: { authorization }, state } = ctx;
 
-  assert(authorization, 401);
+  if (!authorization) {
+    await next();
+    return;
+  }
 
   try {
 
     const { account, roles } = await getRoles(authorization);
-    // const { site, [REQUIRED_ROLE]: hasAuth } = roles;
-    //
-    // if (!hasAuth) {
-    //   ctx.throw(403);
-    // }
 
     debug('authorized:', `"${account.name}"`);
     state.auth = { account, roles };
