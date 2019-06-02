@@ -17,6 +17,11 @@ import Entity from '../models/Entity';
 import Screening from '../models/Screening';
 import BackMount from '../models/BackMount';
 
+import SaleOrder from '../models/SaleOrder';
+import SaleOrderPosition from '../models/SaleOrderPosition';
+
+import User from '../models/User';
+
 export default [
   File,
   Picture,
@@ -35,4 +40,7 @@ export default [
   Entity,
   Screening,
   BackMount,
+  SaleOrder,
+  SaleOrderPosition,
+  User,
 ];
