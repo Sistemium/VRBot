@@ -7,7 +7,7 @@ export default async function (ctx, next) {
 
   const { header: { authorization }, state } = ctx;
 
-  if (!authorization) {
+  if (!authorization || authorization === 'null') {
     await next();
     return;
   }

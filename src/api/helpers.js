@@ -20,7 +20,7 @@ export function getHandler(model) {
 
     try {
 
-      ctx.body = await model.findOne({ id });
+      ctx.body = await model.findOne({ id, isDeleted: { $ne: true } });
 
     } catch (err) {
       error(err.name, err.message);
@@ -46,7 +46,7 @@ export function getManyHandler(model) {
     }
 
     if (!filters.isDeleted) {
-      filters.isDeleted = false;
+      filters.isDeleted = { $ne: true };
     }
 
     try {
