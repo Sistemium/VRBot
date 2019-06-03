@@ -2,7 +2,9 @@ import log from 'sistemium-telegram/services/log';
 import pick from 'lodash/pick';
 import map from 'lodash/map';
 import filter from 'lodash/filter';
+import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
+import uuid from 'uuid/v4';
 
 const { debug, error } = log('rest');
 
@@ -43,6 +45,10 @@ export function getManyHandler(model) {
       pageSize = header[PAGE_SIZE_HEADER] || '10';
     }
 
+    if (!filters.isDeleted) {
+      filters.isDeleted = false;
+    }
+
     try {
 
       const predicateFilter = checkPredicates(ctx, model.predicates);
@@ -67,4 +73,89 @@ function checkPredicates(ctx, predicates) {
 
   return filter(map(predicates, predicate => predicate(ctx)));
 
+}
+
+export function postHandler(model) {
+  return async ctx => {
+
+    const { request: { body }, path } = ctx;
+
+    ctx.assert(Array.isArray(body), 400, 'Body must be an array');
+
+    debug('POST', path, body.length, 'bytes');
+
+    try {
+
+      ctx.body = await model.merge(body);
+
+    } catch (e) {
+      const { writeErrors } = e;
+      if (writeErrors && writeErrors.length) {
+        error('writeErrors[0]:', JSON.stringify(writeErrors[0]));
+      }
+      ctx.throw(500, e);
+    }
+
+  };
+}
+
+export function delHandler(model) {
+
+  return async ctx => {
+
+    const { path, params: { id } } = ctx;
+
+    ctx.assert(id, 400, 'Need an ID to perform DELETE');
+
+    debug('DELETE', path);
+
+    try {
+
+      const query = { id };
+
+      ctx.body = await model.findOneAndUpdate(query, { isDeleted: true });
+
+    } catch (e) {
+      const { writeErrors } = e;
+      if (writeErrors && writeErrors.length) {
+        error('writeErrors[0]:', JSON.stringify(writeErrors[0]));
+      }
+      ctx.throw(500, e);
+    }
+
+  };
+}
+
+
+const UPSERT = { upsert: true, new: true };
+
+export function putHandler(model) {
+  return async ctx => {
+
+    const { request: { body }, path, params } = ctx;
+
+    ctx.assert(isObject(body), 400, 'Body must be an object');
+
+    if (!body.id) {
+      const { id = uuid() } = params;
+      body.id = id;
+    }
+
+    debug('PUT', path, body);
+
+    try {
+
+      const query = { id: body.id };
+
+      ctx.body = await model.findOneAndUpdate(query, body, UPSERT);
+
+    } catch (e) {
+      const { writeErrors } = e;
+      if (writeErrors && writeErrors.length) {
+        error('writeErrors[0]:', JSON.stringify(writeErrors[0]));
+      }
+      ctx.throw(500, e);
+    }
+
+  };
 }

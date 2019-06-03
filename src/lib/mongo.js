@@ -9,6 +9,8 @@ if (process.env.MONGOOSE_DEBUG) {
   mongoose.set('debug', true);
 }
 
+mongoose.set('useFindAndModify', false);
+
 export async function connect() {
   const connected = await mongoose.connect(`mongodb://${mongoUrl}`, {
     useNewUrlParser: true,

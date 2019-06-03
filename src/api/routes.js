@@ -1,6 +1,6 @@
 import Router from 'koa-router';
 
-import { getManyHandler, getHandler } from './helpers';
+import * as h from './helpers';
 import models from './models';
 
 const router = new Router();
@@ -13,7 +13,12 @@ function defaultRoutes(model) {
 
   const { name } = model.collection;
 
-  router.get(`/${name}`, getManyHandler(model));
-  router.get(`/${name}/:id`, getHandler(model));
+  router
+    .get(`/${name}`, h.getManyHandler(model))
+    .get(`/${name}/:id`, h.getHandler(model))
+    .post(`/${name}`, h.postHandler(model))
+    .put(`/${name}/:id`, h.putHandler(model))
+    .put(`/${name}`, h.putHandler(model))
+    .del(`/${name}/:id`, h.delHandler(model));
 
 }
