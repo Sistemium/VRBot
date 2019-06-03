@@ -1,3 +1,4 @@
+import get from 'lodash/get';
 import model from '../lib/schema';
 
 export default model({
@@ -25,4 +26,19 @@ export default model({
 
     ts: Date,
   },
+
+  predicates: [isValidPredicate],
+
 });
+
+function isValidPredicate({ state }) {
+
+  const roles = get(state, 'auth.roles') || {};
+
+  if (roles.admin || roles.manager) {
+    return null;
+  }
+
+  return { isValid: true };
+
+}
