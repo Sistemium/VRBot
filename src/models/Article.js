@@ -34,8 +34,9 @@ export default model({
 function isValidPredicate({ state }) {
 
   const roles = get(state, 'auth.roles') || {};
+  const { admin, manager } = roles;
 
-  if (roles.admin || roles.manager) {
+  if (admin || manager) {
     return null;
   }
 
