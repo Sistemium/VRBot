@@ -10,10 +10,12 @@
     "BOT_USER_NAME": "VseRamkiBot",
     "DEBUG_NAMESPACE": "stm:bot",
     "ERROR_NAMESPACE": "stm:bot:error",
+    "PHA_ROLES_URL": "https://oauth.it/api/roles",
     "GROUP_CHAT_ID": "",
     "REST_PORT": "9300",
+    "MONGOOSE_DEBUG": "",
     "NOTIFY_HOUR_MIN": 8,
     "NOTIFY_HOUR_MAX": 20
   },
-  "ignore": ["static"]
+  "ignore": ["static", "dist"]
 }
