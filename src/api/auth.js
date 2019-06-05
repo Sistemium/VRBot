@@ -8,7 +8,7 @@ const AUTH_EXPIRE = parseInt(process.env.AUTH_EXPIRE, 0) || 300;
 
 export default async function (ctx, next) {
 
-  const { header: { authorization }, state } = ctx;
+  const { header: { authorization }, state, assert } = ctx;
 
   if (!authorization || authorization === 'null') {
     await next();
@@ -17,13 +17,18 @@ export default async function (ctx, next) {
 
   try {
 
-    const { account, roles } = await cachedAuth(authorization);
+    const auth = await cachedAuth(authorization);
+
+    assert(auth, 401);
+
+    const { account, roles } = auth;
 
     debug('authorized:', `"${account.name}"`);
     state.auth = { account, roles };
 
   } catch (e) {
     error('auth:', e.message);
+    await saveAuth(authorization, false);
     ctx.throw(401);
   }
 
@@ -42,10 +47,15 @@ async function cachedAuth(authorization) {
   const auth = await getRoles(authorization);
 
   if (auth.roles && auth.account) {
-    const saved = await setAsync(authorization, JSON.stringify(auth), 'EX', AUTH_EXPIRE);
-    debug('savedAuth', authorization, saved);
+    await saveAuth(authorization, auth);
   }
 
   return auth;
 
+}
+
+
+async function saveAuth(authorization, auth) {
+  const saved = await setAsync(authorization, JSON.stringify(auth), 'EX', AUTH_EXPIRE);
+  debug('savedAuth', authorization, saved);
 }
