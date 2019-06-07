@@ -52,5 +52,6 @@ module.exports = {
     'padded-blocks': 'off',
     'arrow-parens': ['error', 'as-needed'],
     'no-mixed-operators': 'off',
+    'import/prefer-default-export': 'off',
   }
 };
