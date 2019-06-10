@@ -1,6 +1,7 @@
 import File from '../models/File';
 import Picture from '../models/Picture';
 import Frame from '../models/Frame';
+import PictureType from '../models/PictureType';
 
 import Article from '../models/Article';
 import ArticleImage from '../models/ArticleImage';
@@ -25,6 +26,7 @@ import User from '../models/User';
 export default [
   File,
   Picture,
+  PictureType,
   Frame,
   Article,
   Baguette,
