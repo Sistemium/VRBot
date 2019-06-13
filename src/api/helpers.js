@@ -78,11 +78,13 @@ function checkPredicates(ctx, predicates) {
 export function postHandler(model) {
   return async ctx => {
 
-    const { request: { body }, path } = ctx;
+    let { request: { body } } = ctx;
 
-    ctx.assert(Array.isArray(body), 400, 'Body must be an array');
+    if (!Array.isArray(body)) {
+      body = [body];
+    }
 
-    debug('POST', path, body.length, 'bytes');
+    debug('POST', ctx.path, body.length, 'records');
 
     try {
 
