@@ -9,7 +9,6 @@ const schema = new Schema({
   images: Array,
   type: String,
 
-
 }, {
   collection: 'Picture',
 });

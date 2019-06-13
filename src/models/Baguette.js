@@ -20,6 +20,8 @@ export default model({
     colourId: String,
     surfaceId: String,
 
+    pictures: Object,
+
     ts: Date,
   },
 });
