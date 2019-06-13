@@ -1,4 +1,4 @@
-import get from 'lodash/get';
+import { isValidPredicate } from '../api/predicates';
 import model from '../lib/schema';
 
 export default model({
@@ -30,16 +30,3 @@ export default model({
   predicates: [isValidPredicate],
 
 });
-
-function isValidPredicate({ state }) {
-
-  const roles = get(state, 'auth.roles') || {};
-  const { admin, manager } = roles;
-
-  if (admin || manager) {
-    return null;
-  }
-
-  return { isValid: true };
-
-}

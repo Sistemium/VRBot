@@ -1,4 +1,5 @@
 import model from '../lib/schema';
+import { isValidPredicate } from '../api/predicates';
 
 export default model({
   collection: 'Baguette',
@@ -27,4 +28,7 @@ export default model({
 
     ts: Date,
   },
+
+  predicates: [isValidPredicate],
+
 });
