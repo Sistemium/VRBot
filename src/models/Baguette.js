@@ -13,6 +13,9 @@ export default model({
     nameExternal: String,
     isValid: Boolean,
 
+    lowPrice: Number,
+    highPrice: Number,
+
     borderWidth: Number,
 
     materialId: String,
