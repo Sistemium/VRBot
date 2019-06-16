@@ -14,13 +14,15 @@ const s3 = new S3();
 
 const BUCKET = 'vseramki';
 
-export async function photosToImport() {
+export async function photosToImport(folder) {
 
   const params = {
     Bucket: BUCKET,
     MaxKeys: 600,
-    Prefix: 'import/',
+    Prefix: `import/${folder}/`,
   };
+
+  debug('photosToImport:', params);
 
   return new Promise(async (resolve, reject) => {
 

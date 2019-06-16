@@ -2,6 +2,10 @@ import { Schema, model } from 'mongoose';
 
 const schema = new Schema({
 
+  ts: Date,
+  id: String,
+  cts: Date,
+
   refId: Number,
   article: String,
   name: String,

@@ -250,15 +250,15 @@ export async function deletePhoto(ctx) {
 
 export async function importPhotos(ctx) {
 
-  const { match: [text, param] } = ctx;
+  const { match: [, folder, param] } = ctx;
   const limit = parseInt(param, 0) || 5;
 
-  debug(text);
+  debug('importPhotos:', folder, param);
 
   await ctx.replyWithHTML('Получаю список файлов в S3');
   await ctx.replyWithChatAction('typing');
 
-  const s3Objects = await imaging.photosToImport();
+  const s3Objects = await imaging.photosToImport(folder);
   await ctx.replyWithHTML(`Получил список файлов: <b>${s3Objects.length}</b> шт`);
 
   const unprocessed = await async.filterSeriesAsync(s3Objects, processedImageFilter);
@@ -276,6 +276,11 @@ export async function importPhotos(ctx) {
     const { Key, ETag } = s3Object;
     const id = idFromETag(ETag);
     const [, name] = Key.match(/\/([^/]+)$/);
+
+    if (!id) {
+      debug(s3Object);
+      throw new Error('Empty ID while importPhotos');
+    }
 
     await ctx.replyWithHTML(`Пробую обработать <b>${Key}</b>`);
 
