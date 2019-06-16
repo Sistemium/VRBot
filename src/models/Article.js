@@ -4,7 +4,7 @@ import model from '../lib/schema';
 export default model({
   collection: 'Article',
   schema: {
-    id: String,
+
     name: String,
     code: String,
     multiType: String,
@@ -24,7 +24,8 @@ export default model({
     screeningId: String,
     backMountId: String,
 
-    ts: Date,
+    pictures: Object,
+
   },
 
   predicates: [isValidPredicate],

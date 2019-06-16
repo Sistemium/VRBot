@@ -9,6 +9,7 @@ import { eachSeriesAsync } from 'sistemium-telegram/services/async';
 
 import Picture from '../models/Picture';
 import Baguette from '../models/Baguette';
+import Article from '../models/Article';
 import PictureType from '../models/PictureType';
 
 const { debug } = log('pictures');
@@ -45,8 +46,17 @@ export async function updatePictureTypes() {
 
 
 export async function updateBaguettePictures() {
+  return updatePictures(Baguette);
+}
 
-  const baguettes = await Baguette.aggregate([{
+export async function updateArticlePictures() {
+  return updatePictures(Article);
+}
+
+
+async function updatePictures(model) {
+
+  const articles = await model.aggregate([{
     $lookup: {
       from: 'Picture',
       localField: 'code',
@@ -55,9 +65,11 @@ export async function updateBaguettePictures() {
     },
   }]);
 
+  debug('updatePictures', articles.length, articles[0]);
+
   const TYPE = 'type';
 
-  const ops = baguettes.map(({ _id, pictures }) => {
+  const ops = articles.map(({ _id, pictures }) => {
 
     const filtered = filter(pictures, TYPE);
 
@@ -78,9 +90,15 @@ export async function updateBaguettePictures() {
 
   });
 
-  const res = await Baguette.bulkWrite(filter(ops));
+  const validOps = filter(ops);
 
-  debug('updateBaguettePictures', res);
+  if (!validOps.length) {
+    throw new Error('No articles found with pictures');
+  }
+
+  const res = await model.bulkWrite(validOps);
+
+  debug('updatePictures', res);
 
   return res;
 
