@@ -292,7 +292,7 @@ export async function importPhotos(ctx) {
       `<code>${source.length}</code> байт`,
     ].join(' '));
 
-    await imaging.saveImageBuffer(ctx, source, id, { name });
+    await imaging.saveImageBuffer(ctx, source, id, { name, folder });
 
     await ctx.replyWithChatAction('typing');
 

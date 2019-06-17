@@ -12,6 +12,7 @@ const schema = new Schema({
   renamed: String,
   images: Array,
   type: String,
+  folder: String,
 
 }, {
   collection: 'Picture',
