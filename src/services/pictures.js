@@ -73,12 +73,8 @@ async function updatePictures(model) {
 
     const filtered = filter(pictures, TYPE);
 
-    if (!filtered.length) {
-      return false;
-    }
-
     const $set = {
-      pictures: mapValues(keyBy(filtered, TYPE), 'name'),
+      pictures: filtered.length ? mapValues(keyBy(filtered, TYPE), 'name') : null,
     };
 
     return {
