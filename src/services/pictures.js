@@ -93,7 +93,7 @@ async function updatePictures(model) {
   const validOps = filter(ops);
 
   if (!validOps.length) {
-    throw new Error('No articles found with pictures');
+    return { result: { nMatched: 0, nModified: 0 } };
   }
 
   const res = await model.bulkWrite(validOps);
