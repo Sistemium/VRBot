@@ -27,6 +27,10 @@ export default model({
     back: String,
     ts: Date,
     cts: Date,
+
+    stock: Number,
+    sales: Number,
+
   },
   statics: { merge },
 });

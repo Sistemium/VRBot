@@ -26,6 +26,9 @@ export default model({
 
     pictures: Object,
 
+    stock: Number,
+    sales: Number,
+
     ts: Date,
   },
 
