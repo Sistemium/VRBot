@@ -143,6 +143,12 @@ export function putHandler(model) {
       body.id = id;
     }
 
+    const { setComputed } = model;
+
+    if (setComputed) {
+      setComputed.call(body);
+    }
+
     debug('PUT', path, body);
 
     try {
