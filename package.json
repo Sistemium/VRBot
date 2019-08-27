@@ -4,7 +4,7 @@
   "description": "Vse Ramki Telegram bot",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint src",
+    "lint": "eslint src --fix",
     "test": "npm run lint",
     "start": "nodemon --exec 'npm run lint && node -r esm' -- src/index.js",
     "api": "nodemon --exec 'npm run lint && node -r esm' -- src/api",
