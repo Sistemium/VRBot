@@ -17,8 +17,8 @@ function defaultRoutes(model) {
     .get(`/${name}`, h.getManyHandler(model))
     .get(`/${name}/:id`, h.getHandler(model))
     .post(`/${name}`, h.postHandler(model))
-    .put(`/${name}/:id`, h.putHandler(model))
-    .put(`/${name}`, h.putHandler(model))
+    .put(`/${name}/:id`, h.postHandler(model))
+    .put(`/${name}`, h.postHandler(model))
     .del(`/${name}/:id`, h.delHandler(model));
 
 }

@@ -2,9 +2,7 @@ import log from 'sistemium-telegram/services/log';
 import pick from 'lodash/pick';
 import map from 'lodash/map';
 import filter from 'lodash/filter';
-import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
-import uuid from 'uuid/v4';
 
 const { debug, error } = log('rest');
 
@@ -21,6 +19,9 @@ export function getHandler(model) {
     try {
 
       ctx.body = await model.findOne({ id, isDeleted: { $ne: true } });
+      if (!ctx.body) {
+        ctx.status = 404;
+      }
 
     } catch (err) {
       error(err.name, err.message);
@@ -78,17 +79,25 @@ function checkPredicates(ctx, predicates) {
 export function postHandler(model) {
   return async ctx => {
 
-    let { request: { body } } = ctx;
+    const { request: { body }, params: { id } } = ctx;
 
-    if (!Array.isArray(body)) {
-      body = [body];
+    const wasArray = Array.isArray(body);
+
+    ctx.assert(!wasArray || !id, 400, 'Can not post array with id');
+
+    if (id) {
+      body.id = id;
     }
+
+    const data = wasArray ? body : [body];
 
     debug('POST', ctx.path, body.length, 'records');
 
     try {
 
-      ctx.body = await model.merge(body);
+      const res = await model.merge(data);
+
+      ctx.body = wasArray ? res : res[0];
 
     } catch (e) {
       const { writeErrors } = e;
@@ -116,46 +125,6 @@ export function delHandler(model) {
       const query = { id };
 
       ctx.body = await model.findOneAndUpdate(query, { isDeleted: true });
-
-    } catch (e) {
-      const { writeErrors } = e;
-      if (writeErrors && writeErrors.length) {
-        error('writeErrors[0]:', JSON.stringify(writeErrors[0]));
-      }
-      ctx.throw(500, e);
-    }
-
-  };
-}
-
-
-const UPSERT = { upsert: true, new: true };
-
-export function putHandler(model) {
-  return async ctx => {
-
-    const { request: { body }, path, params } = ctx;
-
-    ctx.assert(isObject(body), 400, 'Body must be an object');
-
-    if (!body.id) {
-      const { id = uuid() } = params;
-      body.id = id;
-    }
-
-    const { setComputed } = model;
-
-    if (setComputed) {
-      setComputed.call(body);
-    }
-
-    debug('PUT', path, body);
-
-    try {
-
-      const query = { id: body.id };
-
-      ctx.body = await model.findOneAndUpdate(query, body, UPSERT);
 
     } catch (e) {
       const { writeErrors } = e;
