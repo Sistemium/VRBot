@@ -4,6 +4,10 @@ import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import isFunction from 'lodash/isFunction';
 import uuid from 'uuid/v4';
+import { mapSeriesAsync } from 'sistemium-telegram/services/async';
+// import log from 'sistemium-telegram/services/log';
+
+// const { debug } = log('schema');
 
 export default function (config) {
 
@@ -72,7 +76,9 @@ export async function merge(items) {
   const { mergeBy } = this;
   const toOmit = ['ts', 'cts', ...mergeBy];
 
-  const ops = items.map(item => {
+  const ids = [];
+
+  const ops = await mapSeriesAsync(items, async item => {
 
     const $set = { timestamp: cts, ...omit(item, toOmit) };
     const keys = pick(item, mergeBy);
@@ -81,13 +87,21 @@ export async function merge(items) {
       keys.id = uuid();
     }
 
+    const $setOnInsert = { cts };
+
+    ids.push(keys.id);
+
+    if (this.getNextNdoc && !$set.ndoc) {
+      $setOnInsert.ndoc = await this.getNextNdoc();
+    }
+
     return {
       updateOne: {
         filter: keys,
         update: {
           $set,
           $currentDate: { ts: true },
-          $setOnInsert: { cts },
+          $setOnInsert,
         },
         upsert: true,
       },
@@ -95,6 +109,8 @@ export async function merge(items) {
 
   });
 
-  return this.bulkWrite(ops, { ordered: false });
+  await this.bulkWrite(ops, { ordered: false });
+
+  return this.find({ id: { $in: ids } });
 
 }

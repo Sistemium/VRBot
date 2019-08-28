@@ -4,16 +4,26 @@ import session from 'sistemium-telegram/services/session';
 import 'sistemium-telegram/config/aws';
 
 import * as mongo from './lib/mongo';
+import NotifySaleOrder from './notify/NotifySaleOrder';
 
 const { error } = log('index');
 
-bot.startPolling();
+main().catch(error);
 
-mongo.connect();
+async function main() {
 
-bot.use(exceptionHandler);
-bot.use(session({ botId: BOT_ID })
-  .middleware());
+  await mongo.connect();
+  await bot.startPolling();
+
+  bot.use(exceptionHandler);
+  bot.use(session({ botId: BOT_ID })
+    .middleware());
+
+  const notifySaleOrder = new NotifySaleOrder();
+
+  await notifySaleOrder.init();
+
+}
 
 require('./commands');
 

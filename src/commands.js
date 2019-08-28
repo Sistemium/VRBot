@@ -1,4 +1,4 @@
-import bot from 'sistemium-telegram/services/bot';
+import bot, { BOT_USER_NAME } from 'sistemium-telegram/services/bot';
 import log from 'sistemium-telegram/services/log';
 
 import onStart from './middleware/start';
@@ -7,6 +7,7 @@ import * as photo from './middleware/photo';
 import * as files from './middleware/document';
 import * as frames from './middleware/frames';
 import * as pictures from './middleware/pictures';
+import * as chat from './middleware/chat';
 
 const { debug } = log('commands');
 
@@ -37,4 +38,18 @@ bot.hears(files.SHOW_FILE_COMMAND, files.showFile);
 
 bot.on('document', files.onDocument);
 bot.on('photo', photo.onPhoto);
+
+botHears('set[_ ]([^ _]+)[_ ](.+)', chat.setting);
+botHears('get[ _]([a-z]+)', chat.viewSetting);
+
 bot.on('message', message.onMessage);
+
+function hearsRe(command) {
+
+  return new RegExp(`^/${command}($|@${BOT_USER_NAME}$)`, 'i');
+
+}
+
+function botHears(command, mw) {
+  bot.hears(hearsRe(command), mw);
+}
