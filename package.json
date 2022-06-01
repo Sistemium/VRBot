@@ -26,7 +26,7 @@
     "lodash": "^4.17.10",
     "mongoose": "^5.4.17",
     "node-xlsx": "^0.12.1",
-    "sharp": "^0.20.8",
+    "sharp": "^0.30.5",
     "sistemium-telegram": "^1.2.11",
     "telegraf": "^3.24.0",
     "uuid": "^3.3.2"
